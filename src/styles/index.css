@@ -1,7 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  font-family: 'Avenir Next', 'Segoe UI', sans-serif;
+  font-family: 'Roboto', 'Segoe UI', sans-serif;
+  --font-family: 'Roboto', 'Segoe UI', sans-serif;
   color: #0f172a;
   background: #f8fafc;
   font-synthesis: none;
@@ -16,4 +17,154 @@ body {
 button,
 a {
   transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease;
+}
+
+@media (min-width: 1024px) and (max-height: 850px) {
+  .home-header {
+    height: 72px;
+  }
+
+  .home-main {
+    grid-template-rows: minmax(0, 1fr) 190px;
+  }
+
+  .home-benefits {
+    height: 190px;
+    padding-block: 24px;
+  }
+
+  .home-benefit-grid {
+    height: 142px;
+  }
+
+  .home-benefit-card {
+    min-height: 142px;
+    align-items: center;
+    column-gap: 12px;
+    flex-direction: row;
+    padding: 12px;
+  }
+
+  .home-benefit-card > div:first-child {
+    width: 36px;
+    height: 36px;
+    flex: 0 0 36px;
+  }
+
+  .home-benefit-card > div:last-child {
+    margin-top: 0;
+  }
+
+  .home-benefit-card h2 {
+    font-size: 15px;
+    line-height: 18px;
+  }
+
+  .home-benefit-card p {
+    margin-top: 4px;
+    font-size: 12px;
+    line-height: 15px;
+    line-clamp: 2;
+    -webkit-line-clamp: 2;
+  }
+
+  .home-hero-inner {
+    padding-top: 24px;
+  }
+
+  .home-title {
+    margin-top: 32px;
+    font-size: 40px;
+    line-height: 1.1;
+  }
+
+  .home-copy {
+    margin-top: 28px;
+    font-size: 15px;
+    line-height: 19px;
+  }
+
+  .home-footer {
+    height: 50px;
+  }
+
+  .home-footer-inner {
+    min-height: 50px;
+  }
+}
+
+@media (max-width: 1023px) and (max-height: 700px) {
+  .home-header {
+    height: 56px;
+  }
+
+  .home-main {
+    grid-template-rows: minmax(0, 1fr) 166px;
+  }
+
+  .home-benefits {
+    height: 166px;
+    padding: 6px 16px;
+  }
+
+  .home-hero-inner {
+    padding-block: 8px;
+  }
+
+  .home-title {
+    margin-top: 8px;
+    font-size: 28px;
+    line-height: 1.05;
+  }
+
+  .home-copy {
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 15px;
+  }
+
+  .home-mobile-actions {
+    margin-top: 8px;
+  }
+
+  .home-mobile-actions button,
+  .home-mobile-actions a {
+    height: 36px;
+  }
+
+  .home-benefit-card {
+    gap: 8px;
+    padding: 3px 8px;
+  }
+
+  .home-benefit-card > div:first-child {
+    width: 28px;
+    height: 28px;
+  }
+
+  .home-benefit-card h2 {
+    font-size: 12px;
+    line-height: 14px;
+  }
+
+  .home-benefit-card p {
+    font-size: 11px;
+    line-height: 12px;
+    line-clamp: 1;
+    -webkit-line-clamp: 1;
+  }
+
+  .home-footer {
+    min-height: 32px;
+    padding-block: 0;
+  }
+
+  .home-footer-inner {
+    min-height: 32px;
+    gap: 0;
+  }
+
+  .home-footer nav {
+    display: none;
+  }
 }

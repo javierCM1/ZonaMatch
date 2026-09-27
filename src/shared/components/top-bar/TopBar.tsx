@@ -18,6 +18,7 @@ export function TopBar({
   return (
     <PrimeToolbar
       {...props}
+      className={`!rounded-none ${props.className ?? ''}`}
       start={start}
       center={center}
       end={end}
