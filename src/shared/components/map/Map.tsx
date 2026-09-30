@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import type { LatLngBoundsExpression, Map as LeafletMap } from 'leaflet'
+import type { LatLngBoundsExpression, LatLngExpression, Map as LeafletMap } from 'leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
@@ -12,10 +12,19 @@ export interface MapMarker {
   label?: string
 }
 
+export interface MapClickEvent {
+  latitude: number
+  longitude: number
+}
+
 export interface MapProps {
   markers?: MapMarker[]
+  /** Polygon overlay, e.g. to highlight an analysis zone. */
+  selectedArea?: LatLngExpression[]
   className?: string
   onMarkerSelect?: (marker: MapMarker) => void
+  /** Fires when clicking the map background (not an existing marker). */
+  onMapClick?: (event: MapClickEvent) => void
 }
 
 const CABA_CENTER: [number, number] = [-34.6037, -58.3816]
@@ -24,10 +33,16 @@ const AMBA_BOUNDS: LatLngBoundsExpression = [
   [-34.25, -58.0],
 ]
 
-export function Map({ markers = [], className = '', onMarkerSelect }: MapProps) {
+export function Map({ markers = [], selectedArea, className = '', onMarkerSelect, onMapClick }: MapProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<LeafletMap | null>(null)
   const markersLayerRef = useRef<L.LayerGroup | null>(null)
+  const areaLayerRef = useRef<L.LayerGroup | null>(null)
+  const onMapClickRef = useRef(onMapClick)
+
+  useEffect(() => {
+    onMapClickRef.current = onMapClick
+  }, [onMapClick])
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) {
@@ -50,15 +65,41 @@ export function Map({ markers = [], className = '', onMarkerSelect }: MapProps) 
       maxZoom: 19,
     }).addTo(map)
 
+    map.on('click', (event) => {
+      onMapClickRef.current?.({ latitude: event.latlng.lat, longitude: event.latlng.lng })
+    })
+
     mapRef.current = map
+    areaLayerRef.current = L.layerGroup().addTo(map)
     markersLayerRef.current = L.layerGroup().addTo(map)
 
     return () => {
       map.remove()
       mapRef.current = null
       markersLayerRef.current = null
+      areaLayerRef.current = null
     }
   }, [])
+
+  useEffect(() => {
+    const layer = areaLayerRef.current
+
+    if (!layer) {
+      return
+    }
+
+    layer.clearLayers()
+
+    if (selectedArea && selectedArea.length >= 3) {
+      L.polygon(selectedArea, {
+        color: '#286348',
+        fillColor: '#54c98a',
+        fillOpacity: 0.35,
+        opacity: 1,
+        weight: 2,
+      }).addTo(layer)
+    }
+  }, [selectedArea])
 
   useEffect(() => {
     const layer = markersLayerRef.current
@@ -82,7 +123,10 @@ export function Map({ markers = [], className = '', onMarkerSelect }: MapProps) 
         circle.bindTooltip(marker.label, { direction: 'top', offset: [0, -8] })
       }
 
-      circle.on('click', () => onMarkerSelect?.(marker))
+      circle.on('click', (event) => {
+        L.DomEvent.stopPropagation(event)
+        onMarkerSelect?.(marker)
+      })
       circle.addTo(layer)
     })
   }, [markers, onMarkerSelect])
