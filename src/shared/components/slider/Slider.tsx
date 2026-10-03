@@ -9,10 +9,8 @@ const DEFAULT_HANDLE_CLASS =
 export interface SliderProps extends Omit<PrimeSliderProps, 'className'> {
 	className?: string
 	label?: ReactNode
-	formatValue?: (value: number | [number, number]) => ReactNode
-	/** Tailwind classes for the filled track. Defaults to emerald. */
-	rangeClassName?: string
-	/** Tailwind classes for the drag handle. Defaults to emerald. */
+	formatValue?: (value: number | [number, number]) => ReactNode	
+	rangeClassName?: string	
 	handleClassName?: string
 }
 

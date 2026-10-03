@@ -2,13 +2,12 @@ import type { ReactNode } from 'react'
 import { Dialog as PrimeDialog } from 'primereact/dialog'
 import type { DialogProps as PrimeDialogProps } from 'primereact/dialog'
 
-export type DialogSize = 'sm' | 'md' | 'lg' | 'full'
+export type DialogSize = 'sm' | 'md' | 'lg' | 'xl' | 'full'
 
 export interface DialogProps extends Omit<PrimeDialogProps, 'className' | 'header' | 'footer'> {
 	className?: string
 	header?: ReactNode
-	footer?: ReactNode
-	/** Preset width (or height, for "full"). Defaults to "md". */
+	footer?: ReactNode	
 	size?: DialogSize
 }
 
@@ -16,6 +15,7 @@ const SIZE_CLASSES: Record<DialogSize, string> = {
 	sm: '!w-[92vw] sm:!w-[26rem]',
 	md: '!w-[92vw] sm:!w-[34rem]',
 	lg: '!w-[92vw] sm:!w-[48rem]',
+	xl: '!w-[94vw] sm:!w-[60rem]',
 	full: '!h-[90vh] !w-[95vw] sm:!h-[85vh] sm:!w-[85vw]',
 }
 

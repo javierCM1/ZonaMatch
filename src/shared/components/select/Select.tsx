@@ -2,8 +2,7 @@ import { Dropdown as PrimeDropdown } from 'primereact/dropdown'
 import type { DropdownProps as PrimeDropdownProps } from 'primereact/dropdown'
 
 export interface SelectProps extends Omit<PrimeDropdownProps, 'className'> {
-	className?: string
-	/** Extra classes for the overlay panel that lists the options. */
+	className?: string	
 	panelClassName?: string
 	fullWidth?: boolean
 }

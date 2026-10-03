@@ -17,12 +17,9 @@ export interface StepContext {
 
 export interface StepperProps extends Omit<PrimeStepperProps, 'className' | 'children'> {
 	className?: string
-	steps: StepperStep[]
-	/** Tailwind classes for the step circle, given its active/highlighted state. Defaults to emerald. */
+	steps: StepperStep[]	
 	numberClassName?: (context: StepContext) => string
-	/** Tailwind classes for the connector between steps, given its highlighted state. Defaults to emerald. */
 	separatorClassName?: (context: StepContext) => string
-	/** Tailwind classes for the step title, given its active state. Defaults to slate. */
 	titleClassName?: (context: StepContext) => string
 }
 
@@ -70,8 +67,6 @@ export function Stepper({
 				},
 				stepperpanel: {
 					header: {
-						// PrimeReact fades `linear` steps to 60% opacity via `.p-disabled`; the
-						// color-coded number/title already communicate state, so keep steps fully opaque.
 						className: '!opacity-100',
 					},
 					action: {
