@@ -1,8 +1,12 @@
+import { useState } from 'react'
+import type { FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '../../../shared/components/button'
+import { SiteHeader } from '../../../shared/components/site-header'
+import { SiteFooter } from '../../../shared/components/site-footer'
 import homeCompareIcon from '../../../assets/home-compare.svg'
 import homeHeroImage from '../../../assets/home-hero.png'
-import homePinIcon from '../../../assets/home-pin.svg'
+// import homePinIcon from '../../../assets/home-pin.svg'
 import homeShieldIcon from '../../../assets/home-shield.svg'
 import homeSlidersIcon from '../../../assets/home-sliders.svg'
 
@@ -27,40 +31,28 @@ const benefits = [
   },
 ]
 
+const fieldClass =
+  'w-full rounded-xl border border-[#e3e8e2] bg-white px-4 text-[15px] text-[#12261e] placeholder:text-[#8a9a91] focus:border-[#1f4a38] focus:outline-none focus:ring-2 focus:ring-[#1f4a38]/20'
+
 export function LandingPage() {
   const navigate = useNavigate()
+  const [sent, setSent] = useState(false)
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    // TODO: enviar el email y el comentario al backend. Por ahora solo simula el envío.
+    event.currentTarget.reset()
+    setSent(true)
+  }
 
   return (
-    <div className="landing-root grid h-dvh min-h-0 grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden bg-white text-[#12261e]">
-      <header className="landing-header h-[64px] border-b border-[#e8eee9] bg-white sm:h-[76px] lg:h-[94px]">
-        <div className="mx-auto flex h-full max-w-[1792px] items-center justify-between px-5 lg:px-0">
-          <Link aria-label="ZonaMatch, inicio" className="flex items-center gap-2.5" to="/">
-            <img alt="" height="24" src={homePinIcon} width="24" />
-            <span className="text-xl font-bold text-[#1f4a38]">ZonaMatch</span>
-          </Link>
-          <nav aria-label="Acceso a la aplicación" className="flex items-center gap-3">
-            <div className="hidden sm:block">
-              <Button
-                className="!h-[46px] !rounded-full !border-[#e3e8e2] !bg-white !px-6 !text-[#1f4a38] hover:!bg-[#f6f8f5]"
-                label="Iniciar sesión"
-                onClick={() => navigate('/analisis')}
-                variant="outlined"
-              />
-            </div>
-            <div>
-              <Button
-                className="!h-[46px] !rounded-full !border-[#b7e24d] !bg-[#b7e24d] !px-6 !text-[#1f4a38] hover:!border-[#a9d63e] hover:!bg-[#a9d63e]"
-                label="Empezar gratis"
-                onClick={() => navigate('/analisis')}
-              />
-            </div>
-          </nav>
-        </div>
-      </header>
-      <main className="landing-main grid min-h-0 grid-rows-[minmax(0,1fr)_clamp(190px,25dvh,242px)] lg:grid-rows-[minmax(0,1fr)_242px]">
+    <div className="landing-root min-h-dvh bg-white text-[#12261e]">
+      <SiteHeader />
+      <main className="landing-main">
+        {/* Hero: header + hero ocupan exactamente la pantalla (100dvh). Las alturas del header son 64 / 76 / 94 px. */}
         <section
           aria-labelledby="landing-title"
-          className="relative isolate min-h-0 overflow-hidden"
+          className="relative isolate h-[calc(100dvh-64px)] min-h-[520px] overflow-hidden sm:h-[calc(100dvh-76px)] lg:h-[calc(100dvh-94px)]"
         >
           <img
             alt=""
@@ -68,7 +60,7 @@ export function LandingPage() {
             src={homeHeroImage}
           />
           <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(5,34,31,0.34)_0%,rgba(5,34,31,0.12)_48%,rgba(5,34,31,0.06)_100%)]" />
-          <div className="landing-hero-inner mx-auto grid h-full min-h-0 max-w-[1792px] grid-cols-1 content-start px-5 py-3 sm:px-6 lg:grid-cols-2 lg:content-normal lg:px-0 lg:pb-0 lg:pt-[42px]">
+          <div className="landing-hero-inner mx-auto grid h-full min-h-0 max-w-[1792px] grid-cols-1 content-center px-5 py-6 sm:px-6 lg:grid-cols-2 lg:items-center lg:py-0 lg:pl-0 lg:pr-16">
             <div className="landing-hero-copy max-w-[360px] lg:ml-[89px]">
               <p className="inline-flex min-h-6 items-center rounded-full bg-[#edf7ee] px-3.5 text-[11px] font-semibold text-[#1f4a38] lg:min-h-[30px] lg:px-4 lg:text-[13px]">
                 Encontrá dónde vivir, con datos reales
@@ -115,21 +107,26 @@ export function LandingPage() {
           </div>
         </section>
 
-        <section aria-label="Beneficios de ZonaMatch" className="landing-benefits min-h-0 bg-white px-5 py-2 lg:h-[242px] lg:px-16 lg:py-10" id="beneficios">
-          <div className="landing-benefit-grid mx-auto grid h-full min-h-0 max-w-[1792px] grid-rows-3 gap-1 lg:grid-cols-3 lg:grid-rows-1 lg:gap-6">
+        {/* Beneficios */}
+        <section
+          aria-label="Beneficios de ZonaMatch"
+          className="landing-benefits bg-white px-5 py-10 sm:px-8 lg:px-16 lg:py-14"
+          id="beneficios"
+        >
+          <div className="landing-benefit-grid mx-auto grid max-w-[1792px] gap-4 lg:grid-cols-3 lg:gap-6">
             {benefits.map((benefit) => (
               <article
-                className={`landing-benefit-card flex min-h-0 items-center gap-3 rounded-xl px-3 py-1.5 lg:min-h-[163px] lg:flex-col lg:items-stretch lg:rounded-2xl lg:p-6 ${benefit.background}`}
+                className={`landing-benefit-card flex items-center gap-3 rounded-xl px-4 py-3 lg:min-h-[163px] lg:flex-col lg:items-stretch lg:rounded-2xl lg:p-6 ${benefit.background}`}
                 key={benefit.title}
               >
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white lg:h-11 lg:w-11 lg:rounded-2xl">
                   <img alt="" height="24" src={benefit.icon} width="24" />
                 </div>
                 <div className="min-w-0 lg:mt-2.5">
-                  <h2 className="text-[13px] font-semibold leading-4 text-[#12261e] lg:text-[17px] lg:leading-6">
+                  <h2 className="text-[15px] font-semibold leading-5 text-[#12261e] lg:text-[17px] lg:leading-6">
                     {benefit.title}
                   </h2>
-                  <p className="mt-0.5 line-clamp-2 text-[12px] leading-[14px] text-[#586a61] lg:mt-1.5 lg:text-sm lg:leading-5">
+                  <p className="mt-0.5 text-[13px] leading-5 text-[#586a61] lg:mt-1.5 lg:text-sm">
                     {benefit.description}
                   </p>
                 </div>
@@ -137,18 +134,107 @@ export function LandingPage() {
             ))}
           </div>
         </section>
+
+        {/* Contacto */}
+        <section
+          aria-labelledby="contacto-title"
+          className="landing-contact bg-[#f7f8f6] px-5 py-12 sm:px-8 lg:px-16 lg:py-16"
+          id="contacto"
+        >
+          <div className="mx-auto max-w-[640px]">
+            <h2 className="text-2xl font-bold text-[#1f4a38] lg:text-3xl" id="contacto-title">
+              Contacto
+            </h2>
+            <p className="mt-2 text-[15px] leading-6 text-[#586a61]">
+              ¿Tenés una duda o una sugerencia? Dejanos tu email y tu comentario.
+            </p>
+            <form className="mt-6 flex flex-col gap-4" onChange={() => setSent(false)} onSubmit={handleSubmit}>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium text-[#12261e]" htmlFor="contact-email">
+                  Email
+                </label>
+                <input
+                  autoComplete="email"
+                  className={`${fieldClass} h-12`}
+                  id="contact-email"
+                  name="email"
+                  placeholder="tu@email.com"
+                  required
+                  type="email"
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium text-[#12261e]" htmlFor="contact-message">
+                  Comentario
+                </label>
+                <textarea
+                  className={`${fieldClass} min-h-[120px] resize-y py-3`}
+                  id="contact-message"
+                  maxLength={1000}
+                  name="message"
+                  placeholder="Contanos en qué podemos ayudarte"
+                  required
+                  rows={4}
+                />
+              </div>
+              <div className="flex flex-wrap items-center gap-4">
+                <button
+                  className="inline-flex h-[46px] items-center justify-center rounded-full border border-[#b7e24d] bg-[#b7e24d] px-6 text-[15px] font-semibold text-[#1f4a38] transition-colors hover:border-[#a9d63e] hover:bg-[#a9d63e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1f4a38] focus-visible:ring-offset-2"
+                  type="submit"
+                >
+                  Enviar
+                </button>
+                <p aria-live="polite" className="text-sm font-medium text-[#1f4a38]">
+                  {sent ? '¡Gracias por tu mensaje!' : ''}
+                </p>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        {/* Legales (colapsable) */}
+        <section
+          aria-label="Información legal"
+          className="landing-legal bg-white px-5 py-10 sm:px-8 lg:px-16"
+          id="legales"
+        >
+          <details className="group mx-auto max-w-[860px] rounded-2xl border border-[#e3e8e2] bg-white px-5 py-4 lg:px-6">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[17px] font-semibold text-[#12261e] [&::-webkit-details-marker]:hidden">
+              Legales
+              <svg
+                aria-hidden="true"
+                className="h-5 w-5 shrink-0 text-[#586a61] transition-transform group-open:rotate-180"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </summary>
+            <div className="mt-3 space-y-3 text-[14px] leading-6 text-[#586a61]">
+              <p>
+                Texto provisional. Acá va a ir la información legal de ZonaMatch: el origen de los
+                datos, el alcance del servicio y las condiciones de uso. Los resultados son
+                orientativos y no reemplazan el asesoramiento profesional.
+              </p>
+              <p>
+                Podés leer los{' '}
+                <Link className="font-medium text-[#1f4a38] underline" to="/terminos">
+                  Términos de Servicio
+                </Link>{' '}
+                y la{' '}
+                <Link className="font-medium text-[#1f4a38] underline" to="/privacidad">
+                  Política de Privacidad
+                </Link>{' '}
+                completos.
+              </p>
+            </div>
+          </details>
+        </section>
       </main>
 
-      <footer className="landing-footer min-h-[44px] border-t border-[#e8eee9] bg-white px-5 py-2 lg:h-[65px] lg:px-16 lg:py-0">
-        <div className="landing-footer-inner mx-auto flex min-h-[44px] max-w-[1792px] flex-col justify-center gap-2 text-[11px] font-medium text-[#8a9a91] sm:flex-row sm:items-center sm:justify-between sm:text-[13px] lg:min-h-[65px]">
-          <p>© 2026 ZonaMatch — Encontrá tu zona ideal</p>
-          <nav aria-label="Enlaces legales" className="flex items-center gap-6">
-            <a className="hover:text-[#1f4a38]" href="#privacidad">Privacidad</a>
-            <a className="hover:text-[#1f4a38]" href="#terminos">Términos</a>
-            <a className="hover:text-[#1f4a38]" href="mailto:hola@zonamatch.com">Contacto</a>
-          </nav>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   )
 }
