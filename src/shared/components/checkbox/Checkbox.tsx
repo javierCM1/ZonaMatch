@@ -23,8 +23,6 @@ export function Checkbox({
 			disabled={disabled}
 			invalid={invalid}
 			pt={{
-				// Marks the (invisible, absolutely-positioned) native input as the
-				// `peer` so the visible box can react to its focus-visible state.
 				input: {
 					className: 'peer',
 				},

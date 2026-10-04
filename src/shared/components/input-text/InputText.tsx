@@ -5,7 +5,6 @@ import type { InputTextProps as PrimeInputTextProps } from 'primereact/inputtext
 
 export interface InputTextProps extends Omit<PrimeInputTextProps, 'className'> {
 	className?: string
-	/** Classes for the wrapping element, only rendered when leftIcon/rightIcon are used. */
 	wrapperClassName?: string
 	fullWidth?: boolean
 	leftIcon?: ReactNode

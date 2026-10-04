@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { Dialog } from '../../../shared/components/dialog'
 import { Button } from '../../../shared/components/button'
 import { InputText } from '../../../shared/components/input-text'
 import { Map } from '../../../shared/components/map'
 import type { MapMarker } from '../../../shared/components/map'
-import { useGeolocationZone } from '../../../shared/api/api.geolocation'
-import type { GeolocationCoordinates, GeolocationZone } from '../../../shared/api/api.geolocation'
+import { fetchAddressByCoordinates, geolocationAddressQueryKey } from '../../../shared/api/api.geolocation'
+import type { GeolocationAddress, GeolocationCoordinates } from '../../../shared/api/api.geolocation'
 import poiTagsData from '../data/poi-tags.json'
 import type { PointOfInterest } from './ZoneStep'
 
@@ -82,8 +83,31 @@ function formatCoordinates(coordinates: GeolocationCoordinates): string {
 	return `${coordinates.latitude.toFixed(4)}, ${coordinates.longitude.toFixed(4)}`
 }
 
-function formatZoneAddress(zone: GeolocationZone): string {
-	return [zone.partido, zone.provincia].filter(Boolean).join(', ')
+// Street + house number, e.g. "Av. Córdoba 3933" — kept separate from the
+// locality so it can be guaranteed to show up in the address line below,
+// regardless of what ends up in the title.
+function formatStreet(address: GeolocationAddress): string {
+	return [address.calle, address.altura].filter(Boolean).join(' ')
+}
+
+function formatLocality(address: GeolocationAddress): string {
+	return [address.localidad, address.partido ?? address.comuna, address.provincia].filter(Boolean).join(', ')
+}
+
+function resolveTitle(address: GeolocationAddress): string {
+	return address.nombre || formatStreet(address) || address.direccionCompleta || address.localidad || 'Ubicación seleccionada'
+}
+
+// The street number is the whole point of a map click, so it's always
+// included here even when `nombre` (used for the title) already mentions
+// the street — this is what was going missing before.
+function resolveSubtitle(address: GeolocationAddress, coordinates: GeolocationCoordinates): string {
+	if (address.direccionCompleta) {
+		return address.direccionCompleta
+	}
+
+	const combined = [formatStreet(address), formatLocality(address)].filter(Boolean).join(', ')
+	return combined || formatCoordinates(coordinates)
 }
 
 function searchPlaces(query: string): CandidatePoint[] {
@@ -123,46 +147,29 @@ const CHIP_SELECTED_CLASS = '!border-[#2d493a] !bg-[#e7f2e9] !text-[#2d493a]'
 const CHIP_UNSELECTED_CLASS = '!border-[#dfe7df] !bg-white !text-[#56675e]'
 
 export function NewPoiPopup({ visible, onHide, onAdd }: NewPoiPopupProps) {
+	const queryClient = useQueryClient()
+
 	const [query, setQuery] = useState('')
 	const [history, setHistory] = useState<CandidatePoint[]>([])
 	const [selectedId, setSelectedId] = useState<string | null>(null)
+	const [resolvingIds, setResolvingIds] = useState<ReadonlySet<string>>(new Set())
 	const [selectedTagId, setSelectedTagId] = useState<string | null>(null)
 	const [customTagLabel, setCustomTagLabel] = useState('')
 	const [pointName, setPointName] = useState('')
-	const [mapClickCoordinates, setMapClickCoordinates] = useState<GeolocationCoordinates | null>(null)
-
-	const zoneQuery = useGeolocationZone(mapClickCoordinates)
 
 	const searchResults = useMemo(() => searchPlaces(query), [query])
-
-	// The map-click entry is stored in `history` with a loading placeholder;
-	// once the reverse-geocoding query settles, overlay the resolved name
-	// here instead of writing it back into state.
-	const enrichedHistory = useMemo(() => {
-		if (!mapClickCoordinates || zoneQuery.isPending) {
-			return history
-		}
-
-		const id = mapClickPointId(mapClickCoordinates)
-		const title = zoneQuery.data?.localidad ?? 'Ubicación seleccionada'
-		const address = zoneQuery.data
-			? formatZoneAddress(zoneQuery.data) || formatCoordinates(mapClickCoordinates)
-			: formatCoordinates(mapClickCoordinates)
-
-		return history.map((point) => (point.id === id ? { ...point, title, address } : point))
-	}, [history, mapClickCoordinates, zoneQuery.data, zoneQuery.isPending])
 
 	const visibleList = useMemo(() => {
 		const merged = [...searchResults]
 
-		enrichedHistory.forEach((point) => {
+		history.forEach((point) => {
 			if (!merged.some((item) => item.id === point.id)) {
 				merged.push(point)
 			}
 		})
 
 		return merged.slice(0, 6)
-	}, [searchResults, enrichedHistory])
+	}, [searchResults, history])
 
 	const selectedPoint = visibleList.find((point) => point.id === selectedId) ?? null
 
@@ -180,15 +187,42 @@ export function NewPoiPopup({ visible, onHide, onAdd }: NewPoiPopupProps) {
 		setSelectedId(point.id)
 	}
 
-	function handleMapClick(coordinates: GeolocationCoordinates) {
-		setMapClickCoordinates(coordinates)
+	function updatePoint(id: string, changes: Partial<Pick<CandidatePoint, 'title' | 'address'>>) {
+		setHistory((current) => current.map((point) => (point.id === id ? { ...point, ...changes } : point)))
+	}
+
+	// Each map click resolves independently: the placeholder is selected right
+	// away, and whichever lookup settles later only ever touches its own
+	// point by id — so adding several points in a row no longer makes the
+	// earlier ones snap back to "Buscando ubicación…".
+	async function handleMapClick(coordinates: GeolocationCoordinates) {
+		const id = mapClickPointId(coordinates)
+
 		selectPoint({
-			id: mapClickPointId(coordinates),
+			id,
 			title: 'Buscando ubicación…',
 			address: formatCoordinates(coordinates),
 			latitude: coordinates.latitude,
 			longitude: coordinates.longitude,
 		})
+		setResolvingIds((current) => new Set(current).add(id))
+
+		try {
+			const address = await queryClient.query({
+				queryKey: geolocationAddressQueryKey(coordinates),
+				queryFn: ({ signal }) => fetchAddressByCoordinates(coordinates, signal),
+				staleTime: 5 * 60_000,
+			})
+			updatePoint(id, { title: resolveTitle(address), address: resolveSubtitle(address, coordinates) })
+		} catch {
+			updatePoint(id, { title: 'Ubicación seleccionada', address: formatCoordinates(coordinates) })
+		} finally {
+			setResolvingIds((current) => {
+				const next = new Set(current)
+				next.delete(id)
+				return next
+			})
+		}
 	}
 
 	function handleMarkerSelect(marker: MapMarker) {
@@ -204,8 +238,7 @@ export function NewPoiPopup({ visible, onHide, onAdd }: NewPoiPopupProps) {
 			? customTagLabel.trim()
 			: (POI_TAGS.find((tag) => tag.id === selectedTagId)?.label ?? '')
 
-	const isResolvingSelectedPoint =
-		zoneQuery.isPending && mapClickCoordinates != null && selectedId === mapClickPointId(mapClickCoordinates)
+	const isResolvingSelectedPoint = selectedId != null && resolvingIds.has(selectedId)
 
 	const canSubmit = Boolean(selectedPoint) && Boolean(resolvedTag) && !isResolvingSelectedPoint
 
@@ -213,10 +246,10 @@ export function NewPoiPopup({ visible, onHide, onAdd }: NewPoiPopupProps) {
 		setQuery('')
 		setHistory([])
 		setSelectedId(null)
+		setResolvingIds(new Set())
 		setSelectedTagId(null)
 		setCustomTagLabel('')
 		setPointName('')
-		setMapClickCoordinates(null)
 	}
 
 	function handleCancel() {
@@ -264,7 +297,7 @@ export function NewPoiPopup({ visible, onHide, onAdd }: NewPoiPopupProps) {
 				</>
 			}
 			onHide={handleCancel}
-			size="lg"
+			size="xl"
 			visible={visible}
 		>
 			<div className="grid grid-cols-1 gap-6 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
@@ -304,7 +337,7 @@ export function NewPoiPopup({ visible, onHide, onAdd }: NewPoiPopupProps) {
 						</div>
 					)}
 
-					<div className="h-56 overflow-hidden rounded-xl border border-[#e3e8e2]">
+					<div className="h-80 overflow-hidden rounded-xl border border-[#e3e8e2]">
 						<Map className="h-full w-full" markers={markers} onMapClick={handleMapClick} onMarkerSelect={handleMarkerSelect} />
 					</div>
 				</div>
