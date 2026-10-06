@@ -1,0 +1,8 @@
+[
+	{ "id": "trabajo", "label": "Trabajo" },
+	{ "id": "estudio", "label": "Estudio" },
+	{ "id": "colegio", "label": "Colegio" },
+	{ "id": "salud", "label": "Clínica / obra social" },
+	{ "id": "amigo", "label": "Casa de amigo" },
+	{ "id": "deporte", "label": "Club / deporte" }
+]

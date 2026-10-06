@@ -1,7 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  font-family: 'Avenir Next', 'Segoe UI', sans-serif;
+  font-family: 'Roboto', 'Segoe UI', sans-serif;
+  --font-family: 'Roboto', 'Segoe UI', sans-serif;
   color: #0f172a;
   background: #f8fafc;
   font-synthesis: none;
@@ -16,4 +17,154 @@ body {
 button,
 a {
   transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease;
+}
+
+@media (min-width: 1024px) and (max-height: 850px) {
+  .landing-header {
+    height: 72px;
+  }
+
+  .landing-main {
+    grid-template-rows: minmax(0, 1fr) 190px;
+  }
+
+  .landing-benefits {
+    height: 190px;
+    padding-block: 24px;
+  }
+
+  .landing-benefit-grid {
+    height: 142px;
+  }
+
+  .landing-benefit-card {
+    min-height: 142px;
+    align-items: center;
+    column-gap: 12px;
+    flex-direction: row;
+    padding: 12px;
+  }
+
+  .landing-benefit-card > div:first-child {
+    width: 36px;
+    height: 36px;
+    flex: 0 0 36px;
+  }
+
+  .landing-benefit-card > div:last-child {
+    margin-top: 0;
+  }
+
+  .landing-benefit-card h2 {
+    font-size: 15px;
+    line-height: 18px;
+  }
+
+  .landing-benefit-card p {
+    margin-top: 4px;
+    font-size: 12px;
+    line-height: 15px;
+    line-clamp: 2;
+    -webkit-line-clamp: 2;
+  }
+
+  .landing-hero-inner {
+    padding-top: 24px;
+  }
+
+  .landing-title {
+    margin-top: 32px;
+    font-size: 40px;
+    line-height: 1.1;
+  }
+
+  .landing-copy {
+    margin-top: 28px;
+    font-size: 15px;
+    line-height: 19px;
+  }
+
+  .landing-footer {
+    height: 50px;
+  }
+
+  .landing-footer-inner {
+    min-height: 50px;
+  }
+}
+
+@media (max-width: 1023px) and (max-height: 700px) {
+  .landing-header {
+    height: 56px;
+  }
+
+  .landing-main {
+    grid-template-rows: minmax(0, 1fr) 166px;
+  }
+
+  .landing-benefits {
+    height: 166px;
+    padding: 6px 16px;
+  }
+
+  .landing-hero-inner {
+    padding-block: 8px;
+  }
+
+  .landing-title {
+    margin-top: 8px;
+    font-size: 28px;
+    line-height: 1.05;
+  }
+
+  .landing-copy {
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 15px;
+  }
+
+  .landing-mobile-actions {
+    margin-top: 8px;
+  }
+
+  .landing-mobile-actions button,
+  .landing-mobile-actions a {
+    height: 36px;
+  }
+
+  .landing-benefit-card {
+    gap: 8px;
+    padding: 3px 8px;
+  }
+
+  .landing-benefit-card > div:first-child {
+    width: 28px;
+    height: 28px;
+  }
+
+  .landing-benefit-card h2 {
+    font-size: 12px;
+    line-height: 14px;
+  }
+
+  .landing-benefit-card p {
+    font-size: 11px;
+    line-height: 12px;
+    line-clamp: 1;
+    -webkit-line-clamp: 1;
+  }
+
+  .landing-footer {
+    min-height: 32px;
+    padding-block: 0;
+  }
+
+  .landing-footer-inner {
+    min-height: 32px;
+    gap: 0;
+  }
+
+  .landing-footer nav {
+    display: none;
+  }
 }
