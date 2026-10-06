@@ -4,6 +4,7 @@ import { landingRoutes } from '../../features/landing/landing.routes'
 import { legalRoutes } from '../../features/legal/legal.routes'
 import { locationExplorerRoutes } from '../../features/location-explorer/location-explorer.routes'
 import { siteAnalysisRoutes } from '../../features/site-analysis/site-analysis.routes'
+import { detailedAnalysisRoutes } from '../../features/detailed-analysis/detailed-analysis.routes'
 
 function RootLayout() {
   return (
@@ -22,7 +23,7 @@ export const appRouter = createBrowserRouter([
       ...legalRoutes,
       {
         element: <AppLayout />,
-        children: [...locationExplorerRoutes, ...siteAnalysisRoutes],
+        children: [...locationExplorerRoutes, ...siteAnalysisRoutes, ...detailedAnalysisRoutes],
       },
     ],
   },

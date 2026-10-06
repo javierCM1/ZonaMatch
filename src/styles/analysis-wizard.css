@@ -1,0 +1,1740 @@
+/*
+ * Design system de los wizards de análisis (Mi análisis y Mi análisis detallado).
+ *
+ * Ported 1:1 from the external prototype (tokens.css, base.css, layout.css,
+ * Stepper.css, ui/*.css, wizard/StepActions.css and the three screen stylesheets).
+ *
+ * ISOLATION CONTRACT
+ * Every rule lives under `.zm-analysis` (or is a `zm-` prefixed keyframe), and the
+ * design tokens are declared on that same element instead of `:root`. Nothing here
+ * can reach the Wizard, the Map or any other screen: una vista sólo hereda este
+ * sistema si renderiza su contenido dentro de un `<div className="zm-analysis">`.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap');
+
+/* ---------------------------------------------------------------------------
+ * 1. Tokens (scoped)
+ * ------------------------------------------------------------------------ */
+
+.zm-analysis {
+  /* Marca — lima */
+  --color-brand-50: #f5fbe9;
+  --color-brand-100: #e9f6d3;
+  --color-brand-200: #d8efb4;
+  --color-brand-300: #c3e585;
+  --color-brand-400: #b3e04a;
+  --color-brand-500: #9fd032;
+  --color-brand-600: #6d9620;
+  --color-brand-700: #5a7d19;
+  --color-brand-800: #3f5a11;
+
+  /* Verde profundo — CTAs y estados completados */
+  --color-forest-700: #23402c;
+  --color-forest-800: #1c3323;
+  --color-forest-900: #14251a;
+
+  /* Neutros de tinta */
+  --color-ink-900: #101a14;
+  --color-ink-700: #33413a;
+  --color-ink-600: #485850;
+  --color-ink-500: #5f6e66;
+  --color-ink-400: #7d8b83;
+  --color-ink-300: #a7b3ac;
+
+  /* Superficies */
+  --color-surface: #ffffff;
+  --color-surface-sunken: #f7f9f8;
+  --color-surface-raised: #ffffff;
+
+  /* Bordes */
+  --color-border: #e3e9e5;
+  --color-border-strong: #d3dcd6;
+  --color-border-strongest: #b9c6be;
+
+  /* Estados */
+  --color-row: #f2f8e9;
+  --color-danger: #b03a22;
+  --color-danger-soft: #fdf0ec;
+  --color-success: #1f7a4d;
+  --color-success-soft: #e8f5ee;
+
+  /* Radios */
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-2xl: 24px;
+  --radius-pill: 999px;
+
+  /* Elevación */
+  --shadow-xs: 0 1px 2px rgba(16, 26, 20, 0.05);
+  --shadow-sm: 0 1px 2px rgba(16, 26, 20, 0.05), 0 2px 6px rgba(16, 26, 20, 0.04);
+  --shadow-md: 0 2px 4px rgba(16, 26, 20, 0.04), 0 8px 20px rgba(16, 26, 20, 0.06);
+  --shadow-lg: 0 4px 8px rgba(16, 26, 20, 0.05), 0 18px 40px rgba(16, 26, 20, 0.1);
+  --shadow-forest: 0 1px 2px rgba(16, 26, 20, 0.12), 0 6px 16px rgba(35, 64, 44, 0.24);
+
+  /* Tipografía */
+  --font-sans: 'DM Sans', 'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif;
+
+  /* Movimiento */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.32, 0.64, 1);
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 340ms;
+
+  /* Sin background propio: el área de contenido la pinta el <main> del layout
+     (bg-[#f7f8f6]), que es el único fondo del shell. El canvas + gradientes +
+     box-shadow spread de 100vmax vivían sólo dentro de este div, así que el
+     gutter de px-8 py-6 del <main> quedaba plano y el borde del div marcaba
+     un parche de color en la esquina superior derecha. */
+  min-height: 100%;
+  color: var(--color-ink-900);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-synthesis-weight: none;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+.zm-analysis :focus-visible {
+  outline: 2px solid var(--color-forest-800);
+  outline-offset: 2px;
+}
+
+.zm-analysis ::selection {
+  color: var(--color-forest-900);
+  background-color: var(--color-brand-200);
+}
+
+.zm-analysis ::placeholder {
+  color: var(--color-ink-400);
+  opacity: 1;
+}
+
+.zm-analysis * {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-strongest) transparent;
+}
+
+.zm-analysis *::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.zm-analysis *::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.zm-analysis *::-webkit-scrollbar-thumb {
+  background-color: var(--color-border-strongest);
+  background-clip: content-box;
+  border: 3px solid transparent;
+  border-radius: var(--radius-pill);
+}
+
+/* ---------------------------------------------------------------------------
+ * 2. Page + screen layout (layout.css)
+ * ------------------------------------------------------------------------ */
+
+.zm-analysis .page__main {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 6px 0 36px;
+}
+
+@keyframes zm-screen-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.zm-analysis .screen {
+  display: flex;
+  flex-direction: column;
+  animation: zm-screen-in var(--dur-slow) var(--ease-out) both;
+}
+
+.zm-analysis .screen__header {
+  margin-bottom: 18px;
+  padding-left: 2px;
+}
+
+.zm-analysis .screen__title {
+  max-width: 22ch;
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.14;
+  letter-spacing: -0.033em;
+  text-wrap: balance;
+}
+
+.zm-analysis .screen__subtitle {
+  max-width: 54ch;
+  margin-top: 8px;
+  color: var(--color-ink-600);
+  font-size: 15.5px;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+/* ---------------------------------------------------------------------------
+ * 3. Card (ui/Card.css)
+ * ------------------------------------------------------------------------ */
+
+.zm-analysis .card {
+  position: relative;
+  padding: 22px 24px 24px;
+  background-color: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-md);
+  transition: box-shadow var(--dur-base) var(--ease-out);
+}
+
+/* Hairline superior: simula la luz de la superficie y define el borde superior */
+.zm-analysis .card::before {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9) 20%, rgba(255, 255, 255, 0.9) 80%, transparent);
+  border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+  content: '';
+  pointer-events: none;
+}
+
+/* ---------------------------------------------------------------------------
+ * 4. Button (ui/Button.css) — montado sobre shared/components/button
+ * ------------------------------------------------------------------------ */
+
+.zm-analysis .p-button,
+.zm-analysis .button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px !important;
+  padding: 12px 28px !important;
+  border: 1px solid transparent !important;
+  border-radius: var(--radius-pill) !important;
+  font-family: inherit;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.008em;
+  line-height: 1.2 !important;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: none !important;
+  transition:
+    background-color var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out),
+    color var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+
+/* Se anula el ring de Tailwind del Button compartido; el indicador de foco
+   lo aporta el `:focus-visible` genérico del scope. */
+.zm-analysis .p-button:focus,
+.zm-analysis .p-button:focus-visible {
+  box-shadow: none !important;
+}
+
+.zm-analysis .p-button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.zm-analysis .p-button .p-button-icon {
+  font-size: 0.85em;
+}
+
+/* PrimeReact estira el label (`flex: 1 1 auto`). En un botón de ancho fijo
+   (`button--dashed`) eso separa el icono, que queda clavado a la izquierda, y
+   centra el texto solo. Se fija el par icono+label como una unidad. */
+.zm-analysis .p-button .p-button-label {
+  flex: 0 1 auto;
+}
+
+/* Primary — verde profundo: 11.9:1 con texto blanco */
+.zm-analysis .button--primary {
+  color: #ffffff !important;
+  background-color: var(--color-forest-800) !important;
+  box-shadow: var(--shadow-forest) !important;
+}
+
+.zm-analysis .button--primary:hover:not(:disabled) {
+  background-color: var(--color-forest-900) !important;
+  box-shadow: 0 1px 2px rgba(16, 26, 20, 0.14), 0 10px 24px rgba(35, 64, 44, 0.3) !important;
+}
+
+.zm-analysis .button--primary:active:not(:disabled) {
+  box-shadow: 0 1px 2px rgba(16, 26, 20, 0.16) !important;
+}
+
+/* Secondary */
+.zm-analysis .button--secondary {
+  color: var(--color-ink-900) !important;
+  background-color: var(--color-surface) !important;
+  border-color: var(--color-border-strong) !important;
+  box-shadow: var(--shadow-xs) !important;
+}
+
+.zm-analysis .button--secondary:hover:not(:disabled) {
+  background-color: var(--color-surface-sunken) !important;
+  border-color: var(--color-border-strongest) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+/* Ghost */
+.zm-analysis .button--ghost {
+  color: var(--color-ink-600) !important;
+  background-color: transparent !important;
+}
+
+.zm-analysis .button--ghost:hover:not(:disabled) {
+  color: var(--color-ink-900) !important;
+  background-color: rgba(16, 26, 20, 0.05) !important;
+}
+
+/* Dashed — "agregar" */
+.zm-analysis .button--dashed {
+  width: 100%;
+  padding: 15px 16px !important;
+  color: var(--color-ink-700) !important;
+  background-color: rgba(255, 255, 255, 0.55) !important;
+  border: 1.5px dashed var(--color-border-strongest) !important;
+  border-radius: var(--radius-lg) !important;
+  font-size: 14.5px !important;
+}
+
+.zm-analysis .button--dashed:hover:not(:disabled) {
+  color: var(--color-forest-800) !important;
+  background-color: var(--color-brand-50) !important;
+  border-color: var(--color-brand-600) !important;
+}
+
+.zm-analysis .button--dashed:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.zm-analysis .button--small {
+  padding: 9px 18px !important;
+  font-size: 14px !important;
+}
+
+.zm-analysis .p-button:disabled {
+  color: var(--color-ink-400) !important;
+  background-color: var(--color-surface-sunken) !important;
+  border-color: var(--color-border) !important;
+  box-shadow: none !important;
+  opacity: 1;
+}
+
+.zm-analysis .p-button:disabled:hover {
+  transform: none;
+}
+
+/* ---------------------------------------------------------------------------
+ * 5. Chip (ui/Chip.css)
+ * ------------------------------------------------------------------------ */
+
+.zm-analysis .chip {
+  gap: 7px !important;
+  padding: 9px 17px !important;
+  color: var(--color-ink-700) !important;
+  background-color: var(--color-surface) !important;
+  border-color: var(--color-border-strong) !important;
+  box-shadow: var(--shadow-xs) !important;
+}
+
+.zm-analysis .chip:hover {
+  color: var(--color-ink-900) !important;
+  background-color: var(--color-surface-sunken) !important;
+  border-color: var(--color-border-strongest) !important;
+  box-shadow: var(--shadow-sm) !important;
+  transform: translateY(-1px);
+}
+
+.zm-analysis .chip:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Punto indicador: el estado no depende sólo del color del fondo */
+.zm-analysis .chip::before {
+  width: 7px;
+  height: 7px;
+  background-color: var(--color-border-strongest);
+  border-radius: 50%;
+  content: '';
+  transition:
+    background-color var(--dur-base) var(--ease-out),
+    transform var(--dur-base) var(--ease-spring);
+}
+
+.zm-analysis .chip--selected {
+  padding-right: 17px !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  background-color: var(--color-forest-800) !important;
+  border-color: var(--color-forest-800) !important;
+  box-shadow: var(--shadow-forest) !important;
+}
+
+.zm-analysis .chip--selected::before {
+  background-color: var(--color-brand-300);
+  transform: scale(1.15);
+}
+
+.zm-analysis .chip--selected:hover {
+  color: #ffffff !important;
+  background-color: var(--color-forest-900) !important;
+  border-color: var(--color-forest-900) !important;
+  box-shadow: 0 1px 2px rgba(16, 26, 20, 0.14), 0 10px 24px rgba(35, 64, 44, 0.3) !important;
+}
+
+/* ---------------------------------------------------------------------------
+ * 6. Counter (ui/Counter.css)
+ * ------------------------------------------------------------------------ */
+
+.zm-analysis .counter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  background-color: var(--color-surface-sunken);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+}
+
+.zm-analysis .counter__button {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 0 !important;
+  color: var(--color-ink-700) !important;
+  background-color: var(--color-surface) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: 50% !important;
+  box-shadow: var(--shadow-xs) !important;
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-spring);
+}
+
+.zm-analysis .counter__button:hover:not(:disabled) {
+  color: #ffffff !important;
+  background-color: var(--color-forest-800) !important;
+  border-color: var(--color-forest-800) !important;
+  box-shadow: var(--shadow-forest) !important;
+  transform: scale(1.06);
+}
+
+.zm-analysis .counter__button:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+.zm-analysis .counter__button:disabled {
+  color: var(--color-ink-300) !important;
+  background-color: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  opacity: 1;
+}
+
+/* PrimeReact inyecta un <span class="p-button-label">&nbsp;</span> en los botones
+   icon-only; dentro del grid del counter desplaza el icono fuera del centro. */
+.zm-analysis .counter__button .p-button-label {
+  display: none !important;
+}
+
+/* Lectura del valor — el punto focal del control */
+.zm-analysis .counter__value {
+  display: grid;
+  place-items: center;
+  min-width: 56px;
+  height: 38px;
+  padding: 0 10px;
+  color: var(--color-ink-900);
+  font-size: 17px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-xs);
+}
+
+.zm-analysis .counter__unit {
+  padding-right: 12px;
+  color: var(--color-ink-600);
+  font-size: 14.5px;
+  font-weight: 500;
+}
+
+/* ---------------------------------------------------------------------------
+ * 7. Select (ui/Select.css) — montado sobre shared/components/select
+ * ------------------------------------------------------------------------ */
+
+.zm-analysis .p-dropdown {
+  width: 100%;
+  padding: 11px 34px 11px 13px !important;
+  color: var(--color-ink-900) !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  background-color: var(--color-surface) !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23485850' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  border: 1px solid var(--color-border-strong) !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-xs) !important;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out);
+}
+
+.zm-analysis .p-dropdown:hover {
+  border-color: var(--color-border-strongest) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.zm-analysis .p-dropdown:focus,
+.zm-analysis .p-dropdown.p-focus {
+  border-color: var(--color-forest-800) !important;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(28, 51, 35, 0.12) !important;
+}
+
+.zm-analysis .p-dropdown .p-dropdown-label {
+  padding: 0 !important;
+  color: var(--color-ink-900) !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  background-color: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.zm-analysis .p-dropdown .p-dropdown-trigger {
+  display: none;
+}
+
+.zm-analysis .p-dropdown-panel {
+  overflow: hidden;
+  background-color: var(--color-surface) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.zm-analysis .p-dropdown-panel .p-dropdown-items {
+  padding: 6px !important;
+}
+
+.zm-analysis .p-dropdown-panel .p-dropdown-item {
+  padding: 8px 12px !important;
+  color: var(--color-ink-700) !important;
+  font-size: 14px !important;
+  border-radius: var(--radius-sm);
+}
+
+.zm-analysis .p-dropdown-panel .p-dropdown-item:hover {
+  color: var(--color-forest-900) !important;
+  background-color: var(--color-brand-50) !important;
+}
+
+.zm-analysis .p-dropdown-panel .p-dropdown-item.p-highlight {
+  color: var(--color-forest-900) !important;
+  font-weight: 600;
+  background-color: var(--color-brand-100) !important;
+}
+
+/* ---------------------------------------------------------------------------
+ * 8. Tag (ui/Tag.css) — montado sobre shared/components/tag
+ * ------------------------------------------------------------------------ */
+
+.zm-analysis .p-tag {
+  gap: 5px;
+  padding: 4px 10px !important;
+  color: var(--color-ink-600) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.01em;
+  line-height: 1.4;
+  white-space: nowrap;
+  background-color: var(--color-surface-sunken) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: var(--radius-sm) !important;
+}
+
+/* ---------------------------------------------------------------------------
+ * 9. Input (Select.css / field inputs) — sobre shared/components/input-text
+ * ------------------------------------------------------------------------ */
+
+.zm-analysis .p-inputtext {
+  width: 100%;
+  padding: 10px 12px !important;
+  color: var(--color-ink-900) !important;
+  font-family: inherit;
+  font-size: 14px !important;
+  background-color: var(--color-surface) !important;
+  border: 1px solid var(--color-border-strong) !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: none !important;
+  transition:
+    border-color var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out);
+}
+
+.zm-analysis .p-inputtext:hover {
+  border-color: var(--color-border-strongest) !important;
+}
+
+.zm-analysis .p-inputtext:focus,
+.zm-analysis .p-inputtext.p-focus {
+  border-color: var(--color-forest-800) !important;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(28, 51, 35, 0.12) !important;
+}
+
+.zm-analysis .p-inputtext.p-invalid,
+.zm-analysis .p-inputtext[aria-invalid='true'] {
+  border-color: var(--color-danger) !important;
+}
+
+.zm-analysis .p-inputtext.p-invalid:focus,
+.zm-analysis .p-inputtext[aria-invalid='true']:focus {
+  border-color: var(--color-danger) !important;
+  box-shadow: 0 0 0 3px rgba(176, 58, 34, 0.14) !important;
+}
+
+/* Campo de texto con más aire — "Restricciones generales" */
+.zm-analysis .input--roomy {
+  padding: 12px 13px !important;
+  font-size: 15px !important;
+  font-weight: 500 !important;
+}
+
+/* Nombre del lugar: input inline, sin caja hasta que se interactúa */
+.zm-analysis .lugar__name {
+  width: 100%;
+  min-width: 0;
+  padding: 2px 6px !important;
+  margin-left: -6px;
+  color: var(--color-ink-900) !important;
+  font-size: 16px !important;
+  font-weight: 650 !important;
+  letter-spacing: -0.018em;
+  background-color: transparent !important;
+  border: 1px solid transparent !important;
+  border-radius: var(--radius-xs) !important;
+  box-shadow: none !important;
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+}
+
+.zm-analysis .lugar__name:hover {
+  background-color: var(--color-surface-sunken) !important;
+}
+
+.zm-analysis .lugar__name:focus {
+  background-color: var(--color-surface-sunken) !important;
+  border-color: var(--color-forest-800) !important;
+  outline: none;
+  box-shadow: none !important;
+}
+
+/* ---------------------------------------------------------------------------
+ * 10. Stepper (Stepper.css)
+ * ------------------------------------------------------------------------ */
+
+.zm-analysis .stepper {
+  margin-bottom: 18px;
+}
+
+.zm-analysis .stepper__list {
+  display: flex;
+  align-items: stretch;
+  padding: 6px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+}
+
+.zm-analysis .stepper__item {
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  min-width: 0;
+}
+
+.zm-analysis .stepper__button {
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  padding: 7px 8px;
+  text-align: left;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: background-color var(--dur-base) var(--ease-out);
+}
+
+.zm-analysis .stepper__button:hover {
+  background-color: var(--color-surface-sunken);
+}
+
+.zm-analysis .stepper__index {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  color: var(--color-ink-500);
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 50%;
+  transition:
+    background-color var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out),
+    color var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out),
+    transform var(--dur-base) var(--ease-spring);
+}
+
+.zm-analysis .stepper__text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.zm-analysis .stepper__label {
+  overflow: hidden;
+  color: var(--color-ink-500);
+  font-size: 13.5px;
+  font-weight: 500;
+  letter-spacing: -0.018em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color var(--dur-base) var(--ease-out);
+}
+
+/* microcopy de estado — jerarquía secundaria, sólo lectura */
+.zm-analysis .stepper__status {
+  overflow: hidden;
+  color: var(--color-ink-400);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Connector: la línea que comunica progreso */
+.zm-analysis .stepper__connector {
+  flex: 0 0 14px;
+  height: 2px;
+  margin: 0 2px;
+  background-color: var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  transition: background-color var(--dur-slow) var(--ease-out);
+}
+
+.zm-analysis .stepper__item--done .stepper__index {
+  color: #ffffff;
+  background-color: var(--color-success);
+  border-color: var(--color-success);
+}
+
+.zm-analysis .stepper__item--done .stepper__label {
+  color: var(--color-ink-700);
+}
+
+.zm-analysis .stepper__item--done .stepper__connector {
+  background-color: var(--color-success);
+}
+
+/* Estado activo — el único elemento con contraste de marca alto */
+.zm-analysis .stepper__item--active .stepper__button {
+  background-color: var(--color-brand-50);
+}
+
+.zm-analysis .stepper__item--active .stepper__index {
+  color: var(--color-brand-300);
+  background-color: var(--color-forest-800);
+  border-color: var(--color-forest-800);
+  box-shadow: var(--shadow-forest);
+  transform: scale(1.06);
+}
+
+.zm-analysis .stepper__item--active .stepper__label {
+  color: var(--color-ink-900);
+  font-weight: 700;
+}
+
+.zm-analysis .stepper__item--active .stepper__status {
+  color: var(--color-brand-700);
+  font-weight: 600;
+}
+
+.zm-analysis .stepper__item--todo .stepper__button:hover .stepper__label {
+  color: var(--color-ink-900);
+}
+
+/* ---------------------------------------------------------------------------
+ * 11. Step actions (wizard/StepActions.css)
+ * ------------------------------------------------------------------------ */
+
+.zm-analysis .step-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 22px;
+}
+
+/* ---------------------------------------------------------------------------
+ * 12. Campos (ContextoScreen.css)
+ * ------------------------------------------------------------------------ */
+
+.zm-analysis .field + .field {
+  padding-top: 20px;
+  margin-top: 20px;
+  border-top: 1px solid var(--color-border);
+}
+
+.zm-analysis .field__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+/* Ancla visual del ícono + da altura a la fila de encabezado */
+.zm-analysis .field__icon {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  color: var(--color-forest-800);
+  font-size: 16px;
+  background: linear-gradient(150deg, var(--color-brand-100), var(--color-brand-50));
+  border: 1px solid var(--color-brand-200);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xs);
+}
+
+.zm-analysis .field__headings {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.zm-analysis .field__title {
+  color: var(--color-ink-900);
+  font-size: 16.5px;
+  font-weight: 650;
+  letter-spacing: -0.018em;
+}
+
+.zm-analysis .field__hint {
+  color: var(--color-ink-500);
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
+.zm-analysis .field__body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.zm-analysis .chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* ---------------------------------------------------------------------------
+ * 13. Rango etario (ContextoScreen.css)
+ * ------------------------------------------------------------------------ */
+
+.zm-analysis .age-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(232px, 1fr));
+  gap: 10px;
+  width: 100%;
+}
+
+.zm-analysis .age-field {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 13px 9px 9px;
+  background-color: var(--color-surface-sunken);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out);
+}
+
+.zm-analysis .age-field:hover {
+  background-color: var(--color-surface);
+  border-color: var(--color-border-strongest);
+  box-shadow: var(--shadow-xs);
+}
+
+.zm-analysis .age-field:focus-within {
+  background-color: var(--color-surface);
+  border-color: var(--color-forest-800);
+  box-shadow: 0 0 0 3px rgba(28, 51, 35, 0.1);
+}
+
+.zm-analysis .age-field__index {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  color: var(--color-ink-600);
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xs);
+}
+
+.zm-analysis .age-field__label {
+  color: var(--color-ink-600);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* El select del rango etario va "inline": sin caja, alineado a la derecha */
+.zm-analysis .age-field__select {
+  flex: 1;
+  min-width: 0;
+  padding: 2px 20px 2px 0 !important;
+  margin-left: auto;
+  text-align: right;
+  background-color: transparent !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='%23485850' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right center;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.zm-analysis .age-field__select:hover,
+.zm-analysis .age-field__select:focus {
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+/* El label interno del Dropdown arrastra el estilo de "input" del theme
+   (fondo blanco, borde y padding). Se anula para que quede inline en la fila. */
+.zm-analysis .age-field__select .p-dropdown-label {
+  padding: 0 !important;
+  background-color: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: var(--color-ink-900) !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+}
+
+/* ---------------------------------------------------------------------------
+ * 14. Mascotas (ContextoScreen.css)
+ * ------------------------------------------------------------------------ */
+
+.zm-analysis .pet-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* El chip base usa un punto indicador ::before; acá lo reemplazamos por el emoji */
+.zm-analysis .pet-chip::before {
+  display: none;
+}
+
+.zm-analysis .pet-chip {
+  gap: 8px !important;
+  padding: 7px 16px 7px 7px !important;
+}
+
+/* Tile del emoji: mantiene el ícono legible en ambos estados */
+.zm-analysis .pet-chip__emoji {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  font-size: 15px;
+  line-height: 1;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xs);
+  box-shadow: var(--shadow-xs);
+  transition:
+    background-color var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out);
+}
+
+/* Estado activo: verde profundo, texto blanco (11.9:1) */
+.zm-analysis .pet-chip--selected {
+  padding-right: 18px !important;
+}
+
+.zm-analysis .pet-chip--selected .pet-chip__emoji {
+  background-color: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.22);
+  box-shadow: none;
+}
+
+/* ---------------------------------------------------------------------------
+ * 15. Criterios (CriteriosScreen.css)
+ * ------------------------------------------------------------------------ */
+
+/* Card "flush": sin padding propio, la lista interna manage el ritmo */
+.zm-analysis .card.criterios-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.zm-analysis .criterios-summary {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  padding: 14px 22px 12px;
+  background-color: var(--color-surface-sunken);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.zm-analysis .criterios-summary__count {
+  color: var(--color-forest-800);
+  font-size: 22px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.zm-analysis .criterios-summary__of {
+  /* ink-400 daba 3.37:1 sobre la pista; se alinea con la etiqueta. */
+  color: var(--color-ink-600);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.zm-analysis .criterios-summary__label {
+  color: var(--color-ink-600);
+  font-size: 13.5px;
+  font-weight: 500;
+}
+
+.zm-analysis .criterios-summary__track {
+  flex: 1;
+  height: 5px;
+  margin-left: auto;
+  overflow: hidden;
+  background-color: var(--color-brand-100);
+  border-radius: var(--radius-pill);
+}
+
+.zm-analysis .criterios-summary__fill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-brand-500), var(--color-forest-700));
+  border-radius: var(--radius-pill);
+  transition: width var(--dur-slow) var(--ease-out);
+}
+
+/* Lista: filas separadas por hairline, sin bordes individuales */
+.zm-analysis .criterios {
+  display: flex;
+  flex-direction: column;
+}
+
+.zm-analysis .criterio {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 22px;
+  background-color: var(--color-surface);
+  transition:
+    background-color var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out);
+}
+
+.zm-analysis .criterio + .criterio {
+  border-top: 1px solid var(--color-border);
+}
+
+.zm-analysis .criterio:hover {
+  background-color: var(--color-surface-sunken);
+}
+
+/* Degradado de marca en el borde izquierdo sólo cuando está activo */
+.zm-analysis .criterio--active {
+  box-shadow: inset 3px 0 0 var(--color-brand-500);
+}
+
+.zm-analysis .criterio__icon {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  color: var(--color-forest-800);
+  font-size: 17px;
+  background: linear-gradient(150deg, var(--color-brand-100), var(--color-brand-50));
+  border: 1px solid var(--color-brand-200);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xs);
+  transition:
+    background-color var(--dur-base) var(--ease-out),
+    color var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out);
+}
+
+.zm-analysis .criterio__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.zm-analysis .criterio__name {
+  color: var(--color-ink-900);
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: -0.014em;
+}
+
+.zm-analysis .criterio__description {
+  overflow: hidden;
+  color: var(--color-ink-500);
+  font-size: 13.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Estado inactivo — atenúa sin caer por debajo de 4.5:1 */
+.zm-analysis .criterio--inactive .criterio__icon {
+  color: var(--color-ink-400);
+  background-color: var(--color-surface-sunken);
+  border-color: var(--color-border);
+  box-shadow: none;
+}
+
+.zm-analysis .criterio--inactive .criterio__name {
+  color: var(--color-ink-600);
+  font-weight: 500;
+}
+
+.zm-analysis .prioridades {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 6px;
+}
+
+.zm-analysis .prioridad,
+.zm-analysis .sumar {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 14px !important;
+  color: var(--color-ink-600) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  line-height: 1.4 !important;
+  white-space: nowrap;
+  background-color: var(--color-surface) !important;
+  border: 1px solid var(--color-border-strong) !important;
+  border-radius: var(--radius-pill) !important;
+  box-shadow: none !important;
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.zm-analysis .prioridad:hover,
+.zm-analysis .sumar:hover {
+  color: var(--color-ink-900) !important;
+  border-color: var(--color-border-strongest) !important;
+  box-shadow: var(--shadow-xs) !important;
+}
+
+.zm-analysis .prioridad--selected {
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  background-color: var(--color-forest-800) !important;
+  border-color: var(--color-forest-800) !important;
+  box-shadow: var(--shadow-forest) !important;
+}
+
+.zm-analysis .prioridad--selected:hover {
+  color: #ffffff !important;
+  background-color: var(--color-forest-900) !important;
+  border-color: var(--color-forest-900) !important;
+}
+
+.zm-analysis .sumar {
+  flex-shrink: 0;
+  color: var(--color-ink-500) !important;
+}
+
+/* ---------------------------------------------------------------------------
+ * 16. Puntos de interés (PuntosScreen.css)
+ * ------------------------------------------------------------------------ */
+
+.zm-analysis .puntos__list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Estado vacío pulido */
+.zm-analysis .empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 44px 28px;
+  text-align: center;
+  background-color: rgba(255, 255, 255, 0.6);
+  border: 1.5px dashed var(--color-border-strongest);
+  border-radius: var(--radius-2xl);
+}
+
+.zm-analysis .empty-state__icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 16px;
+  color: var(--color-forest-800);
+  font-size: 22px;
+  background: linear-gradient(150deg, var(--color-brand-100), var(--color-brand-50));
+  border: 1px solid var(--color-brand-200);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.zm-analysis .empty-state__title {
+  color: var(--color-ink-900);
+  font-size: 17px;
+  font-weight: 650;
+  letter-spacing: -0.018em;
+}
+
+.zm-analysis .empty-state__text {
+  max-width: 42ch;
+  margin-top: 7px;
+  color: var(--color-ink-600);
+  font-size: 14px;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+.zm-analysis .lugar {
+  position: relative;
+  padding: 14px 18px 16px;
+  overflow: hidden;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  transition:
+    box-shadow var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out);
+}
+
+.zm-analysis .lugar:hover {
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Acento de prioridad en el borde izquierdo */
+.zm-analysis .lugar::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background-color: var(--color-border-strong);
+  content: '';
+}
+
+.zm-analysis .lugar[data-prioridad='alta']::before {
+  background-color: var(--color-danger);
+}
+
+.zm-analysis .lugar[data-prioridad='media']::before {
+  background-color: var(--color-brand-500);
+}
+
+.zm-analysis .lugar[data-prioridad='baja']::before {
+  background-color: var(--color-brand-200);
+}
+
+.zm-analysis .lugar__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  margin-bottom: 13px;
+}
+
+.zm-analysis .lugar__marker {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin-top: 1px;
+  color: #ffffff;
+  font-size: 12.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  border-radius: 50%;
+  box-shadow:
+    inset 0 -1px 2px rgba(0, 0, 0, 0.14),
+    0 1px 3px rgba(16, 26, 20, 0.18);
+}
+
+.zm-analysis .lugar__ident {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.zm-analysis .lugar__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.zm-analysis .lugar__tag {
+  flex-shrink: 0;
+}
+
+.zm-analysis .lugar__address {
+  overflow: hidden;
+  color: var(--color-ink-500);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.zm-analysis .lugar__remove {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin-top: 2px;
+  padding: 0 !important;
+  color: var(--color-ink-400) !important;
+  background: none !important;
+  border: 1px solid transparent !important;
+  border-radius: 50% !important;
+  box-shadow: none !important;
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+
+.zm-analysis .lugar__remove:hover {
+  color: var(--color-danger) !important;
+  background-color: var(--color-danger-soft) !important;
+  border-color: #f4cec3 !important;
+}
+
+.zm-analysis .lugar__fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding-top: 13px;
+  border-top: 1px solid var(--color-border);
+}
+
+.zm-analysis .lugar__field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+}
+
+.zm-analysis .field-label {
+  color: var(--color-ink-500);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+/* ---------------------------------------------------------------------------
+ * 17. Formulario "Agregar punto de interés" (PuntosScreen.css)
+ * ------------------------------------------------------------------------ */
+
+.zm-analysis .add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  padding: 18px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-forest-800);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  animation: zm-add-form-in var(--dur-slow) var(--ease-spring) both;
+}
+
+@keyframes zm-add-form-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.zm-analysis .add-form__head {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.zm-analysis .add-form__icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  color: var(--color-brand-300);
+  font-size: 14px;
+  background: linear-gradient(150deg, var(--color-forest-700), var(--color-forest-900));
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-forest);
+}
+
+.zm-analysis .add-form__title {
+  color: var(--color-ink-900);
+  font-size: 15.5px;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+
+.zm-analysis .add-form__row {
+  display: grid;
+  grid-template-columns: 168px 1fr;
+  gap: 12px;
+}
+
+.zm-analysis .add-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.zm-analysis .add-form__error {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 12px;
+  color: var(--color-danger);
+  font-size: 13px;
+  font-weight: 500;
+  background-color: var(--color-danger-soft);
+  border: 1px solid #f4cec3;
+  border-radius: var(--radius-md);
+}
+
+.zm-analysis .add-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 3px;
+}
+
+/* ---------------------------------------------------------------------------
+ * 18. Restricciones generales (PuntosScreen.css)
+ * ------------------------------------------------------------------------ */
+
+.zm-analysis .restricciones {
+  padding: 14px 18px 16px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  transition: box-shadow var(--dur-base) var(--ease-out);
+}
+
+.zm-analysis .restricciones:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+.zm-analysis .restricciones__head {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-bottom: 14px;
+}
+
+.zm-analysis .restricciones__icon {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  color: var(--color-forest-800);
+  font-size: 15px;
+  background: linear-gradient(150deg, var(--color-brand-100), var(--color-brand-50));
+  border: 1px solid var(--color-brand-200);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-xs);
+}
+
+.zm-analysis .restricciones__title {
+  color: var(--color-ink-900);
+  font-size: 15.5px;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+
+.zm-analysis .restricciones__field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+/* ---------------------------------------------------------------------------
+ * 19. Responsive (ports de los media queries del prototipo)
+ * ------------------------------------------------------------------------ */
+
+@media (max-width: 720px) {
+  .zm-analysis .criterio {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .zm-analysis .criterio__body {
+    flex-basis: calc(100% - 52px);
+  }
+
+  .zm-analysis .prioridades,
+  .zm-analysis .sumar {
+    margin-left: 52px;
+  }
+
+  .zm-analysis .prioridades {
+    flex-wrap: wrap;
+  }
+
+  .zm-analysis .stepper__status {
+    display: none;
+  }
+
+  .zm-analysis .stepper__button {
+    justify-content: center;
+    padding: 8px 6px;
+  }
+
+  .zm-analysis .stepper__connector {
+    flex-basis: 8px;
+  }
+}
+
+@media (max-width: 620px) {
+  .zm-analysis .lugar__fields,
+  .zm-analysis .add-form__row {
+    grid-template-columns: 1fr;
+  }
+
+  .zm-analysis .lugar__header {
+    align-items: center;
+  }
+}
+
+@media (max-width: 560px) {
+  .zm-analysis .card {
+    padding: 18px 16px 20px;
+    border-radius: var(--radius-xl);
+  }
+
+  .zm-analysis .screen__title {
+    font-size: 26px;
+  }
+
+  .zm-analysis .screen__subtitle {
+    font-size: 15px;
+  }
+
+  .zm-analysis .criterio {
+    padding: 14px 18px;
+  }
+
+  .zm-analysis .criterios-summary {
+    padding: 16px 18px 14px;
+  }
+
+  .zm-analysis .criterio__description {
+    white-space: normal;
+  }
+}
+
+@media (max-width: 460px) {
+  .zm-analysis .step-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .zm-analysis .stepper__label {
+    display: none;
+  }
+
+  .zm-analysis .stepper__item--active .stepper__label {
+    display: block;
+  }
+
+  .zm-analysis .stepper__item--active .stepper__button {
+    justify-content: flex-start;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * 20. Vista de invitado ("Mi análisis"): límite de criterios y controles
+ * ------------------------------------------------------------------------ */
+
+/* StepActions sin paso previo: un solo botón, alineado a la derecha. */
+.zm-analysis .step-actions--end {
+  justify-content: flex-end;
+}
+
+/* Aviso del límite de 2 criterios. Vive entre el resumen y la lista, así que
+   hereda el ancho completo de la card y repite su padding horizontal. */
+.zm-analysis .guest-limit {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 12px 22px;
+  color: var(--color-forest-800);
+  background-color: var(--color-brand-50);
+  border-bottom: 1px solid var(--color-brand-200);
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.5;
+  animation: zm-guest-limit-in var(--dur-base) var(--ease-out) both;
+}
+
+.zm-analysis .guest-limit i {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--color-brand-700);
+  font-size: 14px;
+}
+
+@keyframes zm-guest-limit-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Fila sin cupo: sigue enfocable y clicable para dar feedback, pero no avanza.
+   ink-400 en lugar de ink-300: el control sigue siendo interactivo, así que su
+   etiqueta no cae en la exención de "componente inactivo" de 1.4.3. */
+.zm-analysis .sumar[aria-disabled='true'] {
+  color: var(--color-ink-400) !important;
+  background-color: transparent !important;
+  border-color: var(--color-border) !important;
+  box-shadow: none !important;
+  cursor: not-allowed;
+}
+
+.zm-analysis .sumar[aria-disabled='true']:hover {
+  color: var(--color-ink-500) !important;
+  background-color: rgba(16, 26, 20, 0.04) !important;
+  border-color: var(--color-border-strong) !important;
+  box-shadow: none !important;
+}
+
+/* Press feedback: manda sobre el `translateY(1px)` genérico de `.p-button`. */
+.zm-analysis .prioridad:active:not(:disabled),
+.zm-analysis .sumar:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* Al activar un criterio los selectores de prioridad entran desde la izquierda,
+   en el mismo sentido en que se enciende el acento de la fila. */
+.zm-analysis .prioridades {
+  animation: zm-prioridades-in var(--dur-base) var(--ease-out) both;
+}
+
+@keyframes zm-prioridades-in {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zm-analysis *,
+  .zm-analysis *::before,
+  .zm-analysis *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

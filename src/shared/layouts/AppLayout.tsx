@@ -1,26 +1,37 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Button } from 'primereact/button'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { SearchBar, SideMenu, TopBar } from '../components'
+import { BrandLockup, SearchBar, SideMenu, TopBar } from '../components'
 
 export interface AppLayoutOutletContext {
   search: string
   setSearch: (search: string) => void
+  scrollToTop: () => void
 }
 
 const menuItems = [
   { id: 'home', label: 'Inicio', icon: <i className="pi pi-home" />, path: '/' },
   { id: 'explore', label: 'Buscar zona', icon: <i className="pi pi-compass" />, path: '/explorar' },
   { id: 'analysis', label: 'Mi análisis', icon: <i className="pi pi-chart-bar" />, path: '/analisis' },
+  {
+    id: 'detailed-analysis',
+    label: 'Mi análisis detallado',
+    icon: <i className="pi pi-sliders-h" />,
+    path: '/analisis-detallado',
+  },
   { id: 'comparisons', label: 'Comparaciones', icon: <i className="pi pi-chart-line" />, path: '/comparaciones' },
   { id: 'saved', label: 'Zonas guardadas', icon: <i className="pi pi-bookmark" />, path: '/guardadas' },
 ]
 
+const searchRoutes = ['/explorar', '/mapa', '/buscar-zona']
+
 export function AppLayout() {
   const navigate = useNavigate()
   const location = useLocation()
+  const mainRef = useRef<HTMLElement>(null)
   const [collapsed, setCollapsed] = useState(false)
   const [search, setSearch] = useState('')
+  const showSearch = searchRoutes.includes(location.pathname)
 
   useEffect(() => {
     const mobileQuery = window.matchMedia('(max-width: 767px)')
@@ -35,40 +46,39 @@ export function AppLayout() {
   return (
     <div className="flex h-dvh min-h-0 flex-col overflow-hidden bg-[#f7f8f6] text-slate-950">
       <TopBar
-        className="z-20 !h-[74px] !min-h-[74px] !border-x-0 !border-t-0 !border-white/20 !bg-linear-to-r !from-[#1f4a38] !to-[#b7d5c0] !px-3 !shadow-none sm:!px-6"
+        className="z-20 !h-16 !min-h-16 !border-x-0 !border-t-0 !border-b !border-[#e3e8e2] !bg-white !px-3 !py-0 !shadow-none sm:!px-6"
         start={
-          <div className="flex min-w-0 items-center gap-3 text-white">
+          <div className="flex min-w-0 items-center gap-2">
             <Button
               aria-label={collapsed ? 'Abrir menú' : 'Colapsar menú'}
-              className="!h-9 !w-9 !shrink-0 !bg-transparent !p-0 !text-white hover:!bg-white/15"
+              className="!h-9 !w-9 !shrink-0 !bg-transparent !p-0 !text-[#1f4a38] hover:!bg-slate-100 hover:!text-slate-950"
               icon="pi pi-bars"
               onClick={() => setCollapsed((value) => !value)}
               rounded
             />
-            <div className="flex items-center gap-2.5 whitespace-nowrap text-[17px] font-bold sm:text-xl">
-              <i aria-hidden="true" className="pi pi-map-marker text-xl" />
-              ZonaMatch
-            </div>
+            <BrandLockup />
           </div>
         }
         center={
-          <SearchBar
-            aria-label="Buscar zonas, barrios o localidades"
-            className="!h-8 !min-h-0 !w-[min(420px,38vw)] !rounded-full !border-white/50 !bg-white/85 !px-4 !py-0 !shadow-none"
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Buscar zonas, barrios o localidades..."
-            value={search}
-          />
+          showSearch ? (
+            <SearchBar
+              aria-label="Buscar zonas, barrios o localidades"
+              className="!h-9 !min-h-0 !w-[min(420px,38vw)] !rounded-full !border-[#e3e8e2] !bg-[#f7f8f6] !px-4 !py-0 !shadow-none [&_.pi-search]:!text-slate-500"
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Buscar zonas, barrios o localidades..."
+              value={search}
+            />
+          ) : null
         }
         end={
           <div className="flex items-center gap-2">
             <Button
               aria-label="Notificaciones"
-              className="!h-9 !w-9 !bg-transparent !p-0 !text-white hover:!bg-white/15"
+              className="!h-9 !w-9 !bg-transparent !p-0 !text-[#1f4a38] hover:!bg-slate-100 hover:!text-slate-950"
               icon="pi pi-bell"
               rounded
             />
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/85 text-[13px] font-medium text-[#1f4a38]">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1f4a38] text-[13px] font-medium tracking-wide text-white ring-1 ring-white/20 ring-inset">
               VP
             </div>
           </div>
@@ -91,8 +101,14 @@ export function AppLayout() {
             }))}
           />
         </aside>
-        <main className="min-h-0 min-w-0 flex-1 overflow-auto bg-[#f7f8f6] px-8 py-6 max-[1023px]:px-3 max-[1023px]:py-3">
-          <Outlet context={{ search, setSearch }} />
+        <main ref={mainRef} className="min-h-0 min-w-0 flex-1 overflow-auto bg-[#f7f8f6] px-8 py-6 max-[1023px]:px-3 max-[1023px]:py-3">
+          <Outlet
+            context={{
+              search,
+              setSearch,
+              scrollToTop: () => mainRef.current?.scrollTo({ top: 0, behavior: 'smooth' }),
+            }}
+          />
         </main>
       </div>
     </div>

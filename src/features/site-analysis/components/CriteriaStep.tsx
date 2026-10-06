@@ -1,92 +1,130 @@
+import { useState } from 'react'
 import { Button } from '../../../shared/components/button'
-import { Slider } from '../../../shared/components/slider'
-
-export interface CriterionOption {
-	id: string
-	label: string
-}
+import {
+	GUEST_CRITERIA,
+	GUEST_CRITERIA_LIMIT,
+	GUEST_LIMIT_NOTICE,
+	PRIORITIES,
+	PRIORITY_LABELS,
+	type CriteriosState,
+	type PrioridadId,
+} from '../data/criteria.constants'
 
 export interface CriteriaStepProps {
-	criteria: CriterionOption[]
-	selectedCriteria: string[]
-	onToggleCriterion: (id: string) => void
-	priorities: Record<string, number>
-	priorityLabels: string[]
-	onPriorityChange: (id: string, value: number) => void
+	selected: CriteriosState
+	onAddCriterio: (id: string) => void
+	/** Clic en la prioridad ya activa la desactiva y libera un cupo. */
+	onSelectPrioridad: (id: string, prioridad: PrioridadId) => void
 }
 
-const SLIDER_RANGE_CLASS = '!rounded-full !bg-[#bfdf69]'
-const SLIDER_HANDLE_CLASS =
-	'!-mt-[10px] !-ml-[10px] !h-5 !w-5 !rounded-full !border-2 !border-[#bfdf69] !bg-white !shadow-sm !transition-colors hover:!border-[#a8c94f] focus:!outline-none focus:!shadow-[0_0_0_4px_rgba(191,223,105,0.35)]'
+const LIMIT_NOTICE_ID = 'guest-criteria-limit'
 
-export function CriteriaStep({
-	criteria,
-	selectedCriteria,
-	onToggleCriterion,
-	priorities,
-	priorityLabels,
-	onPriorityChange,
-}: CriteriaStepProps) {
-	const activeCriteria = criteria.filter((criterion) => selectedCriteria.includes(criterion.id))
+export function CriteriaStep({ selected, onAddCriterio, onSelectPrioridad }: CriteriaStepProps) {
+	// El reintento se cuenta localmente para re-montar el aviso y repetir su
+	// entrada: es el feedback del clic en un botón que no puede avanzar.
+	const [blockedAttempts, setBlockedAttempts] = useState(0)
+
+	const activeCount = GUEST_CRITERIA.filter((criterio) => selected[criterio.id]).length
+	const limitReached = activeCount >= GUEST_CRITERIA_LIMIT
+	const progress = Math.round((activeCount / GUEST_CRITERIA_LIMIT) * 100)
+
+	function handleAdd(id: string) {
+		if (limitReached) {
+			setBlockedAttempts((count) => count + 1)
+			return
+		}
+
+		onAddCriterio(id)
+	}
 
 	return (
-		<div className="flex flex-col gap-6">
-			<div className="flex flex-col gap-2">
-				<h1 className="text-2xl font-bold text-[#2d493a] sm:text-3xl">¿Qué es importante para tu grupo familiar?</h1>
-				<p className="text-sm text-[#56675e]">
-					Como visitante podés elegir entre estos dos criterios clave. Si querés más opciones, creá tu perfil más
-					adelante.
+		<div className="screen">
+			<header className="screen__header">
+				<h1 className="screen__title">¿Qué es importante para tu grupo familiar?</h1>
+				<p className="screen__subtitle">
+					Elegí los criterios que te importan y asignales una prioridad. Como visitante podés mantener hasta{' '}
+					{GUEST_CRITERIA_LIMIT} activos.
 				</p>
-			</div>
+			</header>
 
-			<div className="flex flex-col gap-6 rounded-2xl border border-[#e3e8e2] bg-white p-6 sm:p-8">
-				<div className="flex flex-col gap-3">
-					<h2 className="text-sm font-semibold text-[#2d493a]">Criterios disponibles</h2>
-					<div className="flex flex-wrap gap-3">
-						{criteria.map((criterion) => {
-							const selected = selectedCriteria.includes(criterion.id)
+			<section className="card criterios-card">
+				<div aria-live="polite" className="criterios-summary">
+					<span className="criterios-summary__count">{activeCount}</span>
+					<span aria-hidden="true" className="criterios-summary__of">
+						/ {GUEST_CRITERIA_LIMIT}
+					</span>
+					<span className="criterios-summary__label">criterios activos</span>
 
-							return (
-								<Button
-									aria-pressed={selected}
-									className={`!h-10 !rounded-full !border !px-5 !text-sm !font-medium !shadow-none ${
-										selected
-											? '!border-[#2d493a] !bg-[#e7f2e9] !text-[#2d493a]'
-											: '!border-[#dfe7df] !bg-white !text-[#56675e]'
-									}`}
-									key={criterion.id}
-									label={criterion.label}
-									onClick={() => onToggleCriterion(criterion.id)}
-									outlined
-								/>
-							)
-						})}
-					</div>
+					<span aria-hidden="true" className="criterios-summary__track">
+						<span className="criterios-summary__fill" style={{ width: `${progress}%` }} />
+					</span>
 				</div>
 
-				{activeCriteria.map((criterion) => {
-					const priority = priorities[criterion.id] ?? 0
+				{limitReached && (
+					<div className="guest-limit" id={LIMIT_NOTICE_ID} key={blockedAttempts} role="status">
+						<i aria-hidden="true" className="pi pi-info-circle" />
+						<span>{GUEST_LIMIT_NOTICE}</span>
+					</div>
+				)}
 
-					return (
-						<div className="flex flex-col gap-3" key={criterion.id}>
-							<h3 className="text-sm font-medium text-[#2d493a]">Prioridad: {criterion.label}</h3>
-							<div className="flex items-center gap-4">
-								<Slider
-									className="flex-1"
-									handleClassName={SLIDER_HANDLE_CLASS}
-									max={priorityLabels.length - 1}
-									min={0}
-									onChange={(event) => onPriorityChange(criterion.id, event.value as number)}
-									rangeClassName={SLIDER_RANGE_CLASS}
-									step={1}
-									value={priority}
-								/>
-								<span className="w-28 shrink-0 text-sm text-[#56675e]">{priorityLabels[priority]}</span>
-							</div>
-						</div>
-					)
-				})}
-			</div>
+				<ul className="criterios">
+					{GUEST_CRITERIA.map((criterio) => {
+						const prioridad = selected[criterio.id]
+						const isActive = Boolean(prioridad)
+
+						return (
+							<li
+								className={`criterio ${isActive ? 'criterio--active' : 'criterio--inactive'}`}
+								key={criterio.id}
+							>
+								<span aria-hidden="true" className="criterio__icon">
+									<i className={criterio.icon} />
+								</span>
+
+								<div className="criterio__body">
+									<p className="criterio__name">{criterio.nombre}</p>
+									<p className="criterio__description">{criterio.descripcion}</p>
+								</div>
+
+								{prioridad ? (
+									<div
+										aria-label={`Prioridad de ${criterio.nombre}`}
+										className="prioridades"
+										role="group"
+									>
+										{PRIORITIES.map((opcion) => {
+											const isSelected = prioridad === opcion
+
+											return (
+												<Button
+													aria-pressed={isSelected}
+													className={`prioridad ${isSelected ? 'prioridad--selected' : ''}`}
+													icon={isSelected ? 'pi pi-check' : undefined}
+													key={opcion}
+													label={PRIORITY_LABELS[opcion]}
+													onClick={() => onSelectPrioridad(criterio.id, opcion)}
+													outlined
+												/>
+											)
+										})}
+									</div>
+								) : (
+									<Button
+										aria-describedby={limitReached ? LIMIT_NOTICE_ID : undefined}
+										aria-disabled={limitReached || undefined}
+										className="sumar"
+										icon="pi pi-plus"
+										label="Sumar"
+										onClick={() => handleAdd(criterio.id)}
+										outlined
+										title={limitReached ? GUEST_LIMIT_NOTICE : undefined}
+									/>
+								)}
+							</li>
+						)
+					})}
+				</ul>
+			</section>
 		</div>
 	)
 }

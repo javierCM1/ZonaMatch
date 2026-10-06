@@ -5,20 +5,28 @@ export interface SelectProps extends Omit<PrimeDropdownProps, 'className'> {
 	className?: string	
 	panelClassName?: string
 	fullWidth?: boolean
+	/** Omite la superficie empaquetada (fondo, borde y sombra) para que el scope
+	 *  que lo usa defina su propio aspecto, p. ej. un select inline sin caja. */
+	plain?: boolean
 }
 
-export function Select({ className = '', panelClassName = '', fullWidth = false, ...props }: SelectProps) {
+const BOXED_CLASSES =
+	'!rounded-xl !border !border-slate-200 !bg-white !shadow-sm !transition-colors [&.p-disabled]:!opacity-60 [&.p-invalid]:!border-red-400 [&.p-focus]:!border-emerald-500 [&.p-focus]:!shadow-[0_0_0_4px_rgba(16,185,129,0.15)] [&:not(.p-disabled):hover]:!border-emerald-400'
+
+const INPUT_CLASSES = '!py-2.5 !pl-3.5 !text-sm !text-slate-900 [&.p-placeholder]:!text-slate-400'
+
+export function Select({ className = '', panelClassName = '', fullWidth = false, plain = false, ...props }: SelectProps) {
 	return (
 		<PrimeDropdown
 			{...props}
-			className={`!items-center !rounded-xl !border !border-slate-200 !bg-white !shadow-sm !transition-colors [&.p-disabled]:!opacity-60 [&.p-invalid]:!border-red-400 [&.p-focus]:!border-emerald-500 [&.p-focus]:!shadow-[0_0_0_4px_rgba(16,185,129,0.15)] [&:not(.p-disabled):hover]:!border-emerald-400 ${
+			className={`!items-center ${plain ? '' : BOXED_CLASSES} ${
 				fullWidth ? '!flex !w-full' : ''
 			} ${className}`.trim()}
-			panelClassName={`!rounded-xl !border !border-slate-200 !shadow-lg ${panelClassName}`.trim()}
+			panelClassName={
+				plain ? panelClassName : `!rounded-xl !border !border-slate-200 !shadow-lg ${panelClassName}`.trim()
+			}
 			pt={{
-				input: {
-					className: '!py-2.5 !pl-3.5 !text-sm !text-slate-900 [&.p-placeholder]:!text-slate-400',
-				},
+				...(plain ? {} : { input: { className: INPUT_CLASSES } }),
 				trigger: {
 					className: '!w-10 !text-slate-400',
 				},

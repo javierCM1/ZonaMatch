@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { Button } from '../../../shared/components/button'
-import { Stepper } from '../../../shared/components/stepper'
-import type { StepContext } from '../../../shared/components/stepper'
-import { CriteriaStep, type CriterionOption } from '../components/CriteriaStep'
+import { AnalysisStepper } from '../../../shared/components/analysis-stepper'
+import { StepActions } from '../../../shared/components/step-actions'
+import { CriteriaStep } from '../components/CriteriaStep'
 import { NewPoiPopup } from '../components/NewPoiPopup'
 import { ZoneStep, type PointOfInterest } from '../components/ZoneStep'
+import { GUEST_CRITERIA_LIMIT, type CriteriosState, type PrioridadId } from '../data/criteria.constants'
+import '../../../styles/analysis-wizard.css'
 
 export interface SiteAnalysisPageProps {
 	/** Called when leaving the wizard from the first step ("Volver al mapa"). */
@@ -15,41 +16,17 @@ export interface SiteAnalysisPageProps {
 
 const STEPS = [{ label: 'Criterios y prioridad' }, { label: 'Zona inicial y puntos' }]
 
-const CRITERIA_OPTIONS: CriterionOption[] = [
-	{ id: 'movilidad', label: 'Movilidad' },
-	{ id: 'seguridad', label: 'Seguridad' },
-]
-
-const PRIORITY_LABELS = ['Baja', 'Media', 'Alta', 'Imprescindible']
+const DEFAULT_PRIORITY: PrioridadId = 'media'
 
 const INITIAL_POINTS: PointOfInterest[] = [
 	{ id: 'oficina', tag: 'Trabajo', title: 'Oficina', address: 'Av. Corrientes 1200, CABA' },
 	{ id: 'facultad', tag: 'Estudio', title: 'Facultad', address: 'Florencio Varela 1903, San Justo' },
 ]
 
-function stepNumberClassName({ active, highlighted }: StepContext) {
-	return `!flex !h-8 !w-8 !shrink-0 !items-center !justify-center !rounded-full !border-2 !text-sm !font-semibold !transition-colors ${
-		active
-			? '!border-[#bfdf69] !bg-[#bfdf69] !text-[#2d493a]'
-			: highlighted
-				? '!border-[#2d493a] !bg-[#2d493a] !text-white'
-				: '!border-[#d8ded9] !bg-white !text-[#9aa79f]'
-	}`
-}
-
-function stepTitleClassName({ active }: StepContext) {
-	return `!ml-2 !whitespace-nowrap !text-sm !font-medium ${active ? '!text-[#2d493a]' : '!text-[#9aa79f]'}`
-}
-
-function stepSeparatorClassName() {
-	return '!mx-3 !h-0.5 !w-8 !bg-transparent'
-}
-
 export function SiteAnalysisPage({ onComplete }: SiteAnalysisPageProps) {
 	const [activeStep, setActiveStep] = useState(0)
 
-	const [selectedCriteria, setSelectedCriteria] = useState<string[]>(['movilidad', 'seguridad'])
-	const [priorities, setPriorities] = useState<Record<string, number>>({ movilidad: 1, seguridad: 3 })
+	const [selected, setSelected] = useState<CriteriosState>({})
 
 	const [initialZone, setInitialZone] = useState('Palermo, CABA')
 	const [points, setPoints] = useState<PointOfInterest[]>(INITIAL_POINTS)
@@ -59,14 +36,26 @@ export function SiteAnalysisPage({ onComplete }: SiteAnalysisPageProps) {
 
 	const isLastStep = activeStep === STEPS.length - 1
 
-	function toggleCriterion(id: string) {
-		setSelectedCriteria((current) =>
-			current.includes(id) ? current.filter((item) => item !== id) : [...current, id],
-		)
+	function addCriterio(id: string) {
+		setSelected((current) => {
+			if (current[id]) return current
+			// Defensa en profundidad: el paso ya bloquea el clic, esto protege el estado.
+			if (Object.keys(current).length >= GUEST_CRITERIA_LIMIT) return current
+
+			return { ...current, [id]: DEFAULT_PRIORITY }
+		})
 	}
 
-	function handlePriorityChange(id: string, value: number) {
-		setPriorities((current) => ({ ...current, [id]: value }))
+	function selectPrioridad(id: string, prioridad: PrioridadId) {
+		setSelected((current) => {
+			// Clic en la prioridad ya activa → desactiva y libera un cupo.
+			if (current[id] === prioridad) {
+				const { [id]: _removed, ...rest } = current
+				return rest
+			}
+
+			return { ...current, [id]: prioridad }
+		})
 	}
 
 	function removePoint(id: string) {
@@ -76,6 +65,10 @@ export function SiteAnalysisPage({ onComplete }: SiteAnalysisPageProps) {
 	function handlePoiAdded(poi: PointOfInterest) {
 		setPoints((current) => [...current, poi])
 		setIsAddPoiOpen(false)
+	}
+
+	function handleBack() {
+		setActiveStep((step) => Math.max(0, step - 1))
 	}
 
 	function handleContinue() {
@@ -89,45 +82,37 @@ export function SiteAnalysisPage({ onComplete }: SiteAnalysisPageProps) {
 
 	return (
 		<>
-			<div className="flex justify-center">
-				<div className="flex w-full max-w-3xl flex-col gap-4 py-1">
-					<Stepper
-						activeStep={activeStep}
-						linear
-						numberClassName={stepNumberClassName}
-						separatorClassName={stepSeparatorClassName}
-						steps={STEPS}
-						titleClassName={stepTitleClassName}
-					/>
+			{/* Scope del design system compartido: stepper, criterios y acciones. */}
+			<div className="zm-analysis">
+				<div className="flex justify-center">
+					<div className="flex w-full max-w-3xl flex-col gap-4 py-1">
+						<AnalysisStepper activeIndex={activeStep} onSelect={setActiveStep} steps={STEPS} />
 
-					{activeStep === 0 ? (
-						<CriteriaStep
-							criteria={CRITERIA_OPTIONS}
-							onPriorityChange={handlePriorityChange}
-							onToggleCriterion={toggleCriterion}
-							priorities={priorities}
-							priorityLabels={PRIORITY_LABELS}
-							selectedCriteria={selectedCriteria}
-						/>
-					) : (
-						<ZoneStep
-							initialZone={initialZone}
-							maxBudget={maxBudget}
-							maxCommute={maxCommute}
-							onAddPoint={() => setIsAddPoiOpen(true)}
-							onInitialZoneChange={setInitialZone}
-							onMaxBudgetChange={setMaxBudget}
-							onMaxCommuteChange={setMaxCommute}
-							onRemovePoint={removePoint}
-							points={points}
-						/>
-					)}
+						{activeStep === 0 ? (
+							<CriteriaStep
+								onAddCriterio={addCriterio}
+								onSelectPrioridad={selectPrioridad}
+								selected={selected}
+							/>
+						) : (
+							<ZoneStep
+								initialZone={initialZone}
+								maxBudget={maxBudget}
+								maxCommute={maxCommute}
+								onAddPoint={() => setIsAddPoiOpen(true)}
+								onInitialZoneChange={setInitialZone}
+								onMaxBudgetChange={setMaxBudget}
+								onMaxCommuteChange={setMaxCommute}
+								onRemovePoint={removePoint}
+								points={points}
+							/>
+						)}
 
-					<div className="flex items-center justify-end"> 							
-						<Button
-							className="!h-11 !rounded-full !border-transparent !bg-[#bfdf69] !px-8 !text-sm !font-semibold !text-[#2d493a] !shadow-none hover:!brightness-95"
-							label="Continuar"
-							onClick={handleContinue}
+						<StepActions
+							cancelLabel="Atrás"
+							className={activeStep === 0 ? 'step-actions--end' : ''}
+							onCancel={activeStep === 0 ? undefined : handleBack}
+							onContinue={handleContinue}
 						/>
 					</div>
 				</div>

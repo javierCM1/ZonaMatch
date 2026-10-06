@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '../button'
-import homePinIcon from '../../../assets/home-pin.svg'
+import isotipo from '../../../assets/isotipo.png'
+import logotipo from '../../../assets/logotipo.png'
 
 export function SiteHeader() {
   const navigate = useNavigate()
@@ -8,9 +9,9 @@ export function SiteHeader() {
   return (
     <header className="landing-header h-[64px] border-b border-[#e8eee9] bg-white sm:h-[76px] lg:h-[94px]">
       <div className="mx-auto flex h-full max-w-[1792px] items-center justify-between px-5 sm:px-8 lg:px-16">
-        <Link aria-label="ZonaMatch, inicio" className="flex items-center gap-2.5" to="/">
-          <img alt="" height="24" src={homePinIcon} width="24" />
-          <span className="text-xl font-bold text-[#1f4a38]">ZonaMatch</span>
+        <Link aria-label="ZonaMatch, inicio" className="flex items-center gap-2 sm:gap-3" to="/">
+          <img alt="" aria-hidden="true" className="h-9 w-auto sm:h-12" src={isotipo} />
+          <img alt="ZonaMatch" className="h-6 w-auto sm:h-8" src={logotipo} />
         </Link>
         <nav aria-label="Acceso a la aplicación" className="flex items-center gap-3">
           <div className="hidden sm:block">
