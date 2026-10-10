@@ -2,11 +2,11 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '../../../shared/components/button'
+import { Reveal } from '../../../shared/components/reveal'
 import { SiteHeader } from '../../../shared/components/site-header'
 import { SiteFooter } from '../../../shared/components/site-footer'
 import homeCompareIcon from '../../../assets/home-compare.svg'
 import homeHeroImage from '../../../assets/home-hero.png'
-// import homePinIcon from '../../../assets/home-pin.svg'
 import homeShieldIcon from '../../../assets/home-shield.svg'
 import homeSlidersIcon from '../../../assets/home-sliders.svg'
 
@@ -46,91 +46,104 @@ export function LandingPage() {
   }
 
   return (
-    <div className="landing-root min-h-dvh bg-white text-[#12261e]">
+    <div className="min-h-dvh bg-white text-[#12261e]">
       <SiteHeader />
-      <main className="landing-main">
-        {/* Hero: header + hero ocupan exactamente la pantalla (100dvh). Las alturas del header son 64 / 76 / 94 px. */}
+      <main>
+        {/* Hero: header + hero ocupan exactamente la pantalla (100dvh). Alturas del header: 64 / 76 / 94 px.
+            Celular y tablet: todo centrado. Escritorio (1024px o más): texto a la izquierda y botones a la derecha. */}
         <section
           aria-labelledby="landing-title"
-          className="relative isolate h-[calc(100dvh-64px)] min-h-[520px] overflow-hidden sm:h-[calc(100dvh-76px)] lg:h-[calc(100dvh-94px)]"
+          className="relative isolate h-[calc(100dvh-64px)] min-h-[560px] overflow-hidden sm:h-[calc(100dvh-76px)] lg:h-[calc(100dvh-94px)]"
         >
           <img
             alt=""
             className="absolute inset-0 -z-20 h-full w-full object-cover object-[52%_center]"
             src={homeHeroImage}
           />
-          <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(5,34,31,0.34)_0%,rgba(5,34,31,0.12)_48%,rgba(5,34,31,0.06)_100%)]" />
-          <div className="landing-hero-inner mx-auto grid h-full min-h-0 max-w-[1792px] grid-cols-1 content-center px-5 py-6 sm:px-6 lg:grid-cols-2 lg:items-center lg:py-0 lg:pl-0 lg:pr-16">
-            <div className="landing-hero-copy max-w-[360px] lg:ml-[89px]">
-              <p className="inline-flex min-h-6 items-center rounded-full bg-[#edf7ee] px-3.5 text-[11px] font-semibold text-[#1f4a38] lg:min-h-[30px] lg:px-4 lg:text-[13px]">
-                Encontrá dónde vivir, con datos reales
-              </p>
-              <h1
-                className="landing-title mt-3 text-[30px] font-bold leading-[1.1] text-white sm:text-[34px] lg:mt-[56px] lg:text-[48px] lg:leading-[1.25]"
-                id="landing-title"
-              >
-                <span className="block">Tu próxima</span>
-                <span className="block">zona, elegida</span>
-                <span className="block">con criterio.</span>
-              </h1>
-              <p className="landing-copy mt-2 max-w-[344px] text-[13px] leading-[18px] text-white sm:text-[14px] lg:mt-[56px] lg:text-[17px] lg:leading-[21px]">
-                ZonaMatch cruza seguridad, movilidad, vivienda y tus prioridades personales para
-                mostrarte qué barrios de CABA y GBA realmente encajan con tu vida.
-              </p>
-              <div className="landing-mobile-actions mt-3 flex flex-wrap gap-2 lg:hidden">
+          <div className="absolute inset-0 -z-10 bg-[#05221f]/35 lg:hidden" />
+          <div className="absolute inset-0 -z-10 hidden bg-[linear-gradient(90deg,rgba(5,34,31,0.34)_0%,rgba(5,34,31,0.12)_48%,rgba(5,34,31,0.06)_100%)] lg:block" />
+          <div className="mx-auto grid h-full max-w-[1792px] grid-cols-1 content-center justify-items-center px-6 py-8 text-center lg:grid-cols-2 lg:content-normal lg:items-center lg:justify-items-stretch lg:px-0 lg:py-0 lg:pr-16 lg:text-left">
+            <div className="flex flex-col items-center lg:ml-[89px] lg:max-w-[360px] lg:items-start">
+              <Reveal>
+                <p className="inline-flex min-h-6 items-center rounded-full bg-[#edf7ee] px-3.5 text-[11px] font-semibold text-[#1f4a38] lg:min-h-[30px] lg:px-4 lg:text-[13px]">
+                  Encontrá dónde vivir, con datos reales
+                </p>
+              </Reveal>
+              <Reveal className="mt-4 lg:mt-[56px]" delay={120}>
+                <h1
+                  className="text-[32px] font-bold leading-[1.1] text-white sm:text-[40px] lg:text-[48px] lg:leading-[1.25]"
+                  id="landing-title"
+                >
+                  <span className="block">Tu próxima</span>
+                  <span className="block">zona, elegida</span>
+                  <span className="block">con criterio.</span>
+                </h1>
+              </Reveal>
+              <Reveal className="mt-4 lg:mt-[56px]" delay={240}>
+                <p className="max-w-[460px] text-[14px] leading-5 text-white lg:max-w-[344px] lg:text-[17px] lg:leading-[21px]">
+                  ZonaMatch cruza seguridad, movilidad, vivienda y tus prioridades personales para
+                  mostrarte qué barrios de CABA y GBA realmente encajan con tu vida.
+                </p>
+              </Reveal>
+              {/* Botones en celular y tablet: en fila, centrados, debajo del texto */}
+              <Reveal className="mt-6 lg:hidden" delay={360}>
+                <div className="flex flex-wrap items-center justify-center gap-3">
+                  <Button
+                    className="!h-11 !min-w-[187px] !rounded-full !border-[#b7e24d] !bg-[#b7e24d] !px-6 !text-[#1f4a38]"
+                    label="Empezar mi análisis"
+                    onClick={() => navigate('/analisis')}
+                  />
+                  <a
+                    className="inline-flex h-11 min-w-[187px] items-center justify-center rounded-full border border-white bg-transparent px-6 text-[15px] font-semibold text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2"
+                    href="#beneficios"
+                  >
+                    Ver cómo funciona
+                  </a>
+                </div>
+              </Reveal>
+            </div>
+            {/* Botones en escritorio: apilados, a la derecha */}
+            <Reveal className="hidden self-center justify-self-end lg:block" delay={360}>
+              <div className="flex flex-col items-stretch gap-[9px]">
                 <Button
-                  className="!h-10 !rounded-full !border-[#b7e24d] !bg-[#b7e24d] !px-4 !text-[14px] !text-[#1f4a38]"
+                  className="!h-[43px] !w-[187px] !rounded-full !border-[#b7e24d] !bg-[#b7e24d] !px-4 !text-[#1f4a38] hover:!border-[#a9d63e] hover:!bg-[#a9d63e]"
                   label="Empezar mi análisis"
                   onClick={() => navigate('/analisis')}
                 />
                 <a
-                  className="inline-flex h-10 items-center justify-center rounded-full border border-white bg-transparent px-4 text-[14px] font-semibold text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2"
+                  className="inline-flex h-[46px] w-[187px] items-center justify-center rounded-full border border-white bg-transparent px-4 text-[15px] font-semibold text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2"
                   href="#beneficios"
                 >
                   Ver cómo funciona
                 </a>
               </div>
-            </div>
-            <div className="hidden flex-col items-stretch gap-[9px] justify-self-end self-center lg:flex lg:mr-0">
-              <Button
-                className="!h-[43px] !w-[187px] !rounded-full !border-[#b7e24d] !bg-[#b7e24d] !px-4 !text-[#1f4a38] hover:!border-[#a9d63e] hover:!bg-[#a9d63e]"
-                label="Empezar mi análisis"
-                onClick={() => navigate('/analisis')}
-              />
-              <a
-                className="inline-flex h-[46px] w-[187px] items-center justify-center rounded-full border border-white bg-transparent px-4 text-[15px] font-semibold text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2"
-                href="#beneficios"
-              >
-                Ver cómo funciona
-              </a>
-            </div>
+            </Reveal>
           </div>
         </section>
 
         {/* Beneficios */}
         <section
           aria-label="Beneficios de ZonaMatch"
-          className="landing-benefits bg-white px-5 py-10 sm:px-8 lg:px-16 lg:py-14"
+          className="bg-white px-8 py-12 sm:px-12 lg:px-16 lg:py-14"
           id="beneficios"
         >
-          <div className="landing-benefit-grid mx-auto grid max-w-[1792px] gap-4 lg:grid-cols-3 lg:gap-6">
-            {benefits.map((benefit) => (
-              <article
-                className={`landing-benefit-card flex items-center gap-3 rounded-xl px-4 py-3 lg:min-h-[163px] lg:flex-col lg:items-stretch lg:rounded-2xl lg:p-6 ${benefit.background}`}
-                key={benefit.title}
-              >
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white lg:h-11 lg:w-11 lg:rounded-2xl">
-                  <img alt="" height="24" src={benefit.icon} width="24" />
-                </div>
-                <div className="min-w-0 lg:mt-2.5">
-                  <h2 className="text-[15px] font-semibold leading-5 text-[#12261e] lg:text-[17px] lg:leading-6">
-                    {benefit.title}
-                  </h2>
-                  <p className="mt-0.5 text-[13px] leading-5 text-[#586a61] lg:mt-1.5 lg:text-sm">
-                    {benefit.description}
-                  </p>
-                </div>
-              </article>
+          <div className="mx-auto grid max-w-[1792px] gap-5 lg:grid-cols-3 lg:gap-6">
+            {benefits.map((benefit, index) => (
+              <Reveal className="h-full" delay={index * 120} key={benefit.title}>
+                <article
+                  className={`flex h-full items-center gap-4 rounded-2xl px-5 py-5 lg:min-h-[163px] lg:flex-col lg:items-stretch lg:gap-0 lg:p-6 ${benefit.background}`}
+                >
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white lg:h-11 lg:w-11 lg:rounded-2xl">
+                    <img alt="" height="24" src={benefit.icon} width="24" />
+                  </div>
+                  <div className="min-w-0 lg:mt-3">
+                    <h2 className="text-[16px] font-semibold leading-6 text-[#12261e] lg:text-[17px]">
+                      {benefit.title}
+                    </h2>
+                    <p className="mt-1 text-[14px] leading-5 text-[#586a61]">{benefit.description}</p>
+                  </div>
+                </article>
+              </Reveal>
             ))}
           </div>
         </section>
@@ -138,10 +151,10 @@ export function LandingPage() {
         {/* Contacto */}
         <section
           aria-labelledby="contacto-title"
-          className="landing-contact bg-[#f7f8f6] px-5 py-12 sm:px-8 lg:px-16 lg:py-16"
+          className="bg-[#f7f8f6] px-8 py-12 sm:px-12 lg:px-16 lg:py-16"
           id="contacto"
         >
-          <div className="mx-auto max-w-[640px]">
+          <Reveal className="mx-auto max-w-[640px]">
             <h2 className="text-2xl font-bold text-[#1f4a38] lg:text-3xl" id="contacto-title">
               Contacto
             </h2>
@@ -189,48 +202,46 @@ export function LandingPage() {
                 </p>
               </div>
             </form>
-          </div>
+          </Reveal>
         </section>
 
         {/* Legales (colapsable) */}
-        <section
-          aria-label="Información legal"
-          className="landing-legal bg-white px-5 py-10 sm:px-8 lg:px-16"
-          id="legales"
-        >
-          <details className="group mx-auto max-w-[860px] rounded-2xl border border-[#e3e8e2] bg-white px-5 py-4 lg:px-6">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[17px] font-semibold text-[#12261e] [&::-webkit-details-marker]:hidden">
-              Legales
-              <svg
-                aria-hidden="true"
-                className="h-5 w-5 shrink-0 text-[#586a61] transition-transform group-open:rotate-180"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </summary>
-            <div className="mt-3 space-y-3 text-[14px] leading-6 text-[#586a61]">
-              <p>
-                Texto provisional. Acá va a ir la información legal de ZonaMatch: el origen de los
-                datos, el alcance del servicio y las condiciones de uso. Los resultados son
-                orientativos y no reemplazan el asesoramiento profesional.
-              </p>
-              <p>
-                Podés leer los{' '}
-                <Link className="font-medium text-[#1f4a38] underline" to="/terminos">
-                  Términos de Servicio
-                </Link>{' '}
-                y la{' '}
-                <Link className="font-medium text-[#1f4a38] underline" to="/privacidad">
-                  Política de Privacidad
-                </Link>{' '}
-                completos.
-              </p>
-            </div>
-          </details>
+        <section aria-label="Información legal" className="bg-white px-8 py-10 sm:px-12 lg:px-16" id="legales">
+          <Reveal className="mx-auto max-w-[860px]">
+            <details className="group rounded-2xl border border-[#e3e8e2] bg-white px-5 py-4 lg:px-6">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[17px] font-semibold text-[#12261e] [&::-webkit-details-marker]:hidden">
+                Legales
+                <svg
+                  aria-hidden="true"
+                  className="h-5 w-5 shrink-0 text-[#586a61] transition-transform group-open:rotate-180"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </summary>
+              <div className="mt-3 space-y-3 text-[14px] leading-6 text-[#586a61]">
+                <p>
+                  Texto provisional. Acá va a ir la información legal de ZonaMatch: el origen de los
+                  datos, el alcance del servicio y las condiciones de uso. Los resultados son
+                  orientativos y no reemplazan el asesoramiento profesional.
+                </p>
+                <p>
+                  Podés leer los{' '}
+                  <Link className="font-medium text-[#1f4a38] underline" to="/terminos">
+                    Términos de Servicio
+                  </Link>{' '}
+                  y la{' '}
+                  <Link className="font-medium text-[#1f4a38] underline" to="/privacidad">
+                    Política de Privacidad
+                  </Link>{' '}
+                  completos.
+                </p>
+              </div>
+            </details>
+          </Reveal>
         </section>
       </main>
 

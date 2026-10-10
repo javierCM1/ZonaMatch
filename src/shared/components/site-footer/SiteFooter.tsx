@@ -33,16 +33,19 @@ const socialLinks = [
 
 export function SiteFooter() {
   return (
-    <footer className="landing-footer min-h-[44px] border-t border-[#e8eee9] bg-white px-5 py-2 sm:px-8 lg:h-[65px] lg:px-16 lg:py-0">
-      <div className="landing-footer-inner mx-auto grid min-h-[44px] max-w-[1792px] grid-cols-1 items-center justify-items-center gap-2 text-[11px] font-medium text-[#8a9a91] sm:grid-cols-[1fr_auto_1fr] sm:text-[13px] lg:min-h-[65px]">
-        <p className="sm:justify-self-start">© 2026 ZonaMatch — Encontrá tu zona ideal</p>
+    <footer className="border-t border-[#e8eee9] bg-white px-5 py-8 sm:px-8 lg:h-[65px] lg:px-16 lg:py-0">
+      {/* Celular y tablet: todo en columna y centrado. Desde lg (1024px): marca | redes | links en una fila. */}
+      <div className="mx-auto flex max-w-[1792px] flex-col items-center gap-5 text-[13px] font-medium text-[#8a9a91] lg:grid lg:h-full lg:grid-cols-[1fr_auto_1fr] lg:items-center lg:gap-2">
+        <p className="order-3 text-center lg:order-1 lg:justify-self-start lg:text-left">
+          © 2026 ZonaMatch — Encontrá tu zona ideal
+        </p>
 
-        <ul aria-label="Redes sociales" className="flex items-center gap-3">
+        <ul aria-label="Redes sociales" className="order-1 flex items-center gap-3 lg:order-2">
           {socialLinks.map(({ label, href, path }) => (
             <li key={label}>
               <a
                 aria-label={label}
-                className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:text-[#1f4a38] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1f4a38]"
+                className="flex h-9 w-9 items-center justify-center rounded-full transition-colors hover:text-[#1f4a38] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1f4a38] lg:h-8 lg:w-8"
                 href={href}
                 rel="noopener noreferrer"
                 target="_blank"
@@ -55,10 +58,13 @@ export function SiteFooter() {
           ))}
         </ul>
 
-        <nav aria-label="Enlaces legales" className="flex items-center gap-6 sm:justify-self-end">
-          <Link className="hover:text-[#1f4a38]" to="/privacidad">Privacidad</Link>
-          <Link className="hover:text-[#1f4a38]" to="/terminos">Términos</Link>
-          <a className="hover:text-[#1f4a38]" href="mailto:hola@zonamatch.com">Contacto</a>
+        <nav
+          aria-label="Enlaces legales"
+          className="order-2 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 lg:order-3 lg:justify-self-end"
+        >
+          <Link className="py-1 hover:text-[#1f4a38]" to="/privacidad">Privacidad</Link>
+          <Link className="py-1 hover:text-[#1f4a38]" to="/terminos">Términos</Link>
+          <a className="py-1 hover:text-[#1f4a38]" href="mailto:hola@zonamatch.com">Contacto</a>
         </nav>
       </div>
     </footer>

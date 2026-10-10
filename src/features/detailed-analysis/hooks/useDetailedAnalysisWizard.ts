@@ -18,54 +18,19 @@ export function createInitialContexto(): ContextoState {
 	return {
 		personas: 1,
 		edades: [DEFAULT_AGE_RANGE],
-		movilidad: ['transporte-publico', 'bici'],
+		movilidad: [],
 		mascotas: [],
 	}
 }
 
 export function createInitialCriterios(): CriteriosState {
-	return {
-		seguridad: 'media',
-		movilidad: 'alta',
-		'espacios-verdes': 'baja',
-	}
+	return {}
 }
 
 export function createInitialPuntos(): PuntosState {
 	return {
-		lugares: [
-			{
-				id: 'lugar-inicial-1',
-				nombre: 'Oficina',
-				tipo: 'Trabajo',
-				direccion: 'Av. Corrientes 1200, CABA',
-				quienVa: 'Yo',
-				frecuencia: '5x por semana',
-				prioridad: 'Muy importante',
-				tiempoMax: '45 min',
-			},
-			{
-				id: 'lugar-inicial-2',
-				nombre: 'Facultad',
-				tipo: 'Estudio',
-				direccion: 'Florencio Varela 1903, San Justo',
-				quienVa: 'Yo',
-				frecuencia: '2x por semana',
-				prioridad: 'Alta',
-				tiempoMax: '60 min',
-			},
-			{
-				id: 'lugar-inicial-3',
-				nombre: 'Escuela N° 5',
-				tipo: 'Colegio',
-				direccion: 'Güemes 4200, Palermo',
-				quienVa: 'Hijo/a',
-				frecuencia: '5x por semana',
-				prioridad: 'Muy importante',
-				tiempoMax: '20 min',
-			},
-		],
-		alquilerMaximo: '$ 600.000',
+		lugares: [],
+		alquilerMaximo: '',
 	}
 }
 

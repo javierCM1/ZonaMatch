@@ -1,9 +1,10 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { AnalysisStepper } from '../../../shared/components/analysis-stepper'
 import { StepActions } from '../../../shared/components/step-actions'
 import { CriteriaStep } from '../components/CriteriaStep'
 import { NewPoiPopup } from '../components/NewPoiPopup'
-import { ZoneStep, type PointOfInterest } from '../components/ZoneStep'
+import { ZoneStep, type PointOfInterest, type SelectedZone } from '../components/ZoneStep'
 import { GUEST_CRITERIA_LIMIT, type CriteriosState, type PrioridadId } from '../data/criteria.constants'
 import '../../../styles/analysis-wizard.css'
 
@@ -18,25 +19,28 @@ const STEPS = [{ label: 'Criterios y prioridad' }, { label: 'Zona inicial y punt
 
 const DEFAULT_PRIORITY: PrioridadId = 'media'
 
-const INITIAL_POINTS: PointOfInterest[] = [
-	{ id: 'oficina', tag: 'Trabajo', title: 'Oficina', address: 'Av. Corrientes 1200, CABA' },
-	{ id: 'facultad', tag: 'Estudio', title: 'Facultad', address: 'Florencio Varela 1903, San Justo' },
-]
+// Por ahora el resultado del wizard invitado siempre es Palermo; se reemplaza cuando exista
+// el cálculo real de zonas según criterios.
+const RESULTADO_ZONE_SLUG = 'palermo'
 
 export function SiteAnalysisPage({ onComplete }: SiteAnalysisPageProps) {
+	const navigate = useNavigate()
 	const [activeStep, setActiveStep] = useState(0)
+	const [validationError, setValidationError] = useState('')
 
 	const [selected, setSelected] = useState<CriteriosState>({})
 
-	const [initialZone, setInitialZone] = useState('Palermo, CABA')
-	const [points, setPoints] = useState<PointOfInterest[]>(INITIAL_POINTS)
-	const [maxCommute, setMaxCommute] = useState('45 minutos')
-	const [maxBudget, setMaxBudget] = useState<number | null>(600_000)
+	const [initialZone, setInitialZone] = useState<SelectedZone | null>(null)
+	const [points, setPoints] = useState<PointOfInterest[]>([])
+	const [maxCommute, setMaxCommute] = useState('')
+	const [maxBudget, setMaxBudget] = useState<number | null>(null)
 	const [isAddPoiOpen, setIsAddPoiOpen] = useState(false)
 
 	const isLastStep = activeStep === STEPS.length - 1
+	const criteriosCount = Object.keys(selected).length
 
 	function addCriterio(id: string) {
+		setValidationError('')
 		setSelected((current) => {
 			if (current[id]) return current
 			// Defensa en profundidad: el paso ya bloquea el clic, esto protege el estado.
@@ -47,6 +51,7 @@ export function SiteAnalysisPage({ onComplete }: SiteAnalysisPageProps) {
 	}
 
 	function selectPrioridad(id: string, prioridad: PrioridadId) {
+		setValidationError('')
 		setSelected((current) => {
 			// Clic en la prioridad ya activa → desactiva y libera un cupo.
 			if (current[id] === prioridad) {
@@ -63,20 +68,36 @@ export function SiteAnalysisPage({ onComplete }: SiteAnalysisPageProps) {
 	}
 
 	function handlePoiAdded(poi: PointOfInterest) {
+		setValidationError('')
 		setPoints((current) => [...current, poi])
 		setIsAddPoiOpen(false)
 	}
 
 	function handleBack() {
+		setValidationError('')
 		setActiveStep((step) => Math.max(0, step - 1))
 	}
 
 	function handleContinue() {
-		if (isLastStep) {
-			onComplete?.()
+		// Validación por paso: no se avanza sin lo mínimo indispensable.
+		if (activeStep === 0 && criteriosCount === 0) {
+			setValidationError('Elegí al menos un criterio para poder continuar.')
 			return
 		}
 
+		if (isLastStep) {
+			if (points.length === 0) {
+				setValidationError('Agregá al menos un punto de interés para poder continuar.')
+				return
+			}
+
+			// Fin del wizard invitado: por ahora siempre Palermo; se reemplaza por el cálculo real.
+			onComplete?.()
+			navigate(`/zonas/${RESULTADO_ZONE_SLUG}`)
+			return
+		}
+
+		setValidationError('')
 		setActiveStep((step) => step + 1)
 	}
 
@@ -106,6 +127,16 @@ export function SiteAnalysisPage({ onComplete }: SiteAnalysisPageProps) {
 								onRemovePoint={removePoint}
 								points={points}
 							/>
+						)}
+
+						{validationError && (
+							<p
+								aria-live="polite"
+								className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700"
+								role="alert"
+							>
+								{validationError}
+							</p>
 						)}
 
 						<StepActions

@@ -17,10 +17,10 @@ export function SearchBar({ onSubmit, className = '', ...props }: SearchBarProps
       onSubmit={handleSubmit}
       role="search"
     >
-      <i aria-hidden="true" className="pi pi-search text-slate-400" />
+      <i aria-hidden="true" className="pi pi-search text-slate-600" />
       <input
         {...props}
-        className="min-w-0 flex-1 border-0 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
+        className="min-w-0 flex-1 border-0 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-600"
       />
       <Button
         aria-label="Buscar"

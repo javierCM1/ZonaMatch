@@ -35,10 +35,10 @@ function mapItems(items: SideMenuItem[], collapsed: boolean): MenuItem[] {
         <a
           aria-label={collapsed ? tooltipLabel : undefined}
           aria-disabled={item.disabled || undefined}
-          className={`${options.className} flex min-h-11 items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-colors hover:bg-slate-100 hover:text-slate-950 ${
+          className={`${options.className} flex min-h-11 items-center gap-3 rounded-xl py-3 text-sm font-medium transition-colors hover:bg-slate-100 hover:text-slate-950 ${
             item.selected ? 'bg-[#e6f3e9] text-[#1f4a38]' : 'text-slate-600'
           } ${
-            collapsed ? 'side-menu-item-tooltip justify-center px-0' : ''
+            collapsed ? 'side-menu-item-tooltip justify-center px-0' : 'px-3'
           }`}
           data-pr-position="right"
           data-pr-tooltip={collapsed ? tooltipLabel : undefined}
